@@ -322,10 +322,10 @@ public class Tokens {
         /** The token kind */
         public final TokenKind kind;
 
-        /** The start position of this token */
+        /** The start position of this token token起始位置 */
         public final int pos;
 
-        /** The end position of this token */
+        /** The end position of this token token结束位置 */
         public final int endPos;
 
         /** Comment reader associated with this token */

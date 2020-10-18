@@ -478,7 +478,7 @@ public class JavacParser implements Parser {
     }
 
     /** If next input token matches given token, skip it, otherwise report
-     *  an error.
+     *  an error. 如果当前token类型和给定的相同,直接跳过该token,读取下一个token
      */
     public void accept(TokenKind tk) {
         if (token.kind == tk) {
@@ -582,9 +582,9 @@ public class JavacParser implements Parser {
      * Ident = IDENTIFIER
      */
     Name ident() {
-        if (token.kind == IDENTIFIER) {
-            Name name = token.name();
-            nextToken();
+        if (token.kind == IDENTIFIER) { // 标识符
+            Name name = token.name(); // 获取 token 名
+            nextToken(); // 读取下一个 token
             return name;
         } else if (token.kind == ASSERT) {
             if (allowAsserts) {
@@ -636,7 +636,7 @@ public class JavacParser implements Parser {
      */
     public JCExpression qualident(boolean allowAnnos) {
         JCExpression t = toP(F.at(token.pos).Ident(ident()));
-        while (token.kind == DOT) {
+        while (token.kind == DOT) { // 当前token是 点号,继续读取下一个token
             int pos = token.pos;
             nextToken();
             List<JCAnnotation> tyannos = null;
@@ -648,7 +648,7 @@ public class JavacParser implements Parser {
                 t = toP(F.at(tyannos.head.pos).AnnotatedType(tyannos, t));
             }
         }
-        return t;
+        return t; // 返回完整包名
     }
 
     JCExpression literal(Name prefix) {
@@ -3048,7 +3048,7 @@ public class JavacParser implements Parser {
             }
             nextToken(); // 读取下一个token
             pid = qualident(false); // 解析包名
-            accept(SEMI);
+            accept(SEMI); // 处理包名最后的 分号(;)
         }
         ListBuffer<JCTree> defs = new ListBuffer<JCTree>();
         boolean checkForImports = true;
@@ -3060,16 +3060,16 @@ public class JavacParser implements Parser {
                 if (token.kind == EOF)
                     break;
             }
-            if (checkForImports && mods == null && token.kind == IMPORT) {
+            if (checkForImports && mods == null && token.kind == IMPORT) { // 解析 import
                 seenImport = true;
-                defs.append(importDeclaration());
-            } else {
+                defs.append(importDeclaration()); // 处理 import 声明
+            } else { // 解析 类型声明
                 Comment docComment = token.comment(CommentStyle.JAVADOC);
                 if (firstTypeDecl && !seenImport && !seenPackage) {
                     docComment = firstToken.comment(CommentStyle.JAVADOC);
                     consumedToplevelDoc = true;
                 }
-                JCTree def = typeDeclaration(mods, docComment);
+                JCTree def = typeDeclaration(mods, docComment); // 类型声明
                 if (def instanceof JCExpressionStatement)
                     def = ((JCExpressionStatement)def).expr;
                 defs.append(def);
@@ -3092,13 +3092,13 @@ public class JavacParser implements Parser {
         return toplevel;
     }
 
-    /** ImportDeclaration = IMPORT [ STATIC ] Ident { "." Ident } [ "." "*" ] ";"
+    /** ImportDeclaration = IMPORT [ STATIC ] Ident { "." Ident } [ "." "*" ] ";" 处理import声明
      */
     JCTree importDeclaration() {
         int pos = token.pos;
         nextToken();
         boolean importStatic = false;
-        if (token.kind == STATIC) {
+        if (token.kind == STATIC) { // 解析静态导入声明
             checkStaticImports();
             importStatic = true;
             nextToken();
@@ -3106,8 +3106,8 @@ public class JavacParser implements Parser {
         JCExpression pid = toP(F.at(token.pos).Ident(ident()));
         do {
             int pos1 = token.pos;
-            accept(DOT);
-            if (token.kind == STAR) {
+            accept(DOT); // 处理 .
+            if (token.kind == STAR) { // 处理 *
                 pid = to(F.at(pos1).Select(pid, names.asterisk));
                 nextToken();
                 break;
@@ -3115,20 +3115,20 @@ public class JavacParser implements Parser {
                 pid = toP(F.at(pos1).Select(pid, ident()));
             }
         } while (token.kind == DOT);
-        accept(SEMI);
-        return toP(F.at(pos).Import(pid, importStatic));
+        accept(SEMI); // 处理 分号
+        return toP(F.at(pos).Import(pid, importStatic)); // 创建 JCImport 对象
     }
 
     /** TypeDeclaration = ClassOrInterfaceOrEnumDeclaration
-     *                  | ";"
+     *                  | ";" 类型声明 处理
      */
     JCTree typeDeclaration(JCModifiers mods, Comment docComment) {
         int pos = token.pos;
-        if (mods == null && token.kind == SEMI) {
+        if (mods == null && token.kind == SEMI) { // 处理分号
             nextToken();
             return toP(F.at(pos).Skip());
         } else {
-            return classOrInterfaceOrEnumDeclaration(modifiersOpt(mods), docComment);
+            return classOrInterfaceOrEnumDeclaration(modifiersOpt(mods), docComment); // 类 或 接口 或 枚举 声明
         }
     }
 
@@ -3138,12 +3138,12 @@ public class JavacParser implements Parser {
      *  @param dc       The documentation comment for the class, or null.
      */
     JCStatement classOrInterfaceOrEnumDeclaration(JCModifiers mods, Comment dc) {
-        if (token.kind == CLASS) {
+        if (token.kind == CLASS) { // 处理 class
             return classDeclaration(mods, dc);
-        } else if (token.kind == INTERFACE) {
+        } else if (token.kind == INTERFACE) { // 处理 interface
             return interfaceDeclaration(mods, dc);
         } else if (allowEnums) {
-            if (token.kind == ENUM) {
+            if (token.kind == ENUM) { // 处理 enum
                 return enumDeclaration(mods, dc);
             } else {
                 int pos = token.pos;
@@ -3177,14 +3177,14 @@ public class JavacParser implements Parser {
     }
 
     /** ClassDeclaration = CLASS Ident TypeParametersOpt [EXTENDS Type]
-     *                     [IMPLEMENTS TypeList] ClassBody
+     *                     [IMPLEMENTS TypeList] ClassBody 类型声明处理
      *  @param mods    The modifiers starting the class declaration
      *  @param dc       The documentation comment for the class, or null.
      */
     protected JCClassDecl classDeclaration(JCModifiers mods, Comment dc) {
         int pos = token.pos;
-        accept(CLASS);
-        Name name = ident();
+        accept(CLASS); // 跳过 class token
+        Name name = ident(); // 解析类名
 
         List<JCTypeParameter> typarams = typeParametersOpt();
 
