@@ -1,5 +1,8 @@
 package com.sun.tools.javac.zc;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * @author zhangcheng
  * @date 2020/8/23
@@ -16,6 +19,7 @@ public class HelloWorld {
         long num4 = 1L;
         // oneLine Comments
         /* more line comments */
+        List<String> list = new ArrayList<>();
         System.out.println("hello");
     }
 }

@@ -116,7 +116,7 @@ public class Tokens {
     public enum TokenKind implements Formattable, Filter<TokenKind> {
         EOF(),
         ERROR(),
-        IDENTIFIER(Tag.NAMED), // 这个 Token 对象没有 name 值,用来泛指用户自定义的类名、包名、变量包、方法名等
+        IDENTIFIER(Tag.NAMED), // 标识符.这个 Token 对象没有 name 值,用来泛指用户自定义的类名、包名、变量包、方法名等
         ABSTRACT("abstract"),
         ASSERT("assert", Tag.NAMED),
         BOOLEAN("boolean", Tag.NAMED),
@@ -402,7 +402,7 @@ public class Tokens {
             if (comments == null) {
                 return List.nil();
             } else {
-                ListBuffer<Comment> buf = ListBuffer.lb();
+                ListBuffer<Comment> buf = ListBuffer.lb(); // 创建 ListBuffer 对象
                 for (Comment c : comments) {
                     if (c.getStyle() == style) {
                         buf.add(c);

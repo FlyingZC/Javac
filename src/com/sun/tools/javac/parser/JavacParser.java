@@ -265,23 +265,23 @@ public class JavacParser implements Parser {
     JCVariableDecl receiverParam;
 
 
-    /** When terms are parsed, the mode determines which is expected:
-     *     mode = EXPR        : an expression
-     *     mode = TYPE        : a type
-     *     mode = NOPARAMS    : no parameters allowed for type
-     *     mode = TYPEARG     : type argument
+    /** When terms are parsed, the mode determines which is expected: 当表达式被解析时,所期望的 mode 取值
+     *     mode = EXPR        : an expression 表达式
+     *     mode = TYPE        : a type 类型
+     *     mode = NOPARAMS    : no parameters allowed for type 允许类型不传递实际类型参数
+     *     mode = TYPEARG     : type argument 类型传递了实际类型参数
      */
-    static final int EXPR = 0x1;
-    static final int TYPE = 0x2;
-    static final int NOPARAMS = 0x4;
-    static final int TYPEARG = 0x8;
+    static final int EXPR = 0x1; // 表达式
+    static final int TYPE = 0x2; // 类型
+    static final int NOPARAMS = 0x4; // 允许类型不传递实际类型参数
+    static final int TYPEARG = 0x8; // 类型传递了实际类型参数
     static final int DIAMOND = 0x10;
 
-    /** The current mode.
+    /** The current mode. 在解析 当前项 时的期望
      */
     private int mode = 0;
 
-    /** The mode of the term that was parsed last.
+    /** The mode of the term that was parsed last. 上一次被解析的 项的期望
      */
     private int lastmode = 0;
 
@@ -578,7 +578,7 @@ public class JavacParser implements Parser {
 
 /* ---------- parsing -------------- */
 
-    /**
+    /** 解析标识符,返回name
      * Ident = IDENTIFIER
      */
     Name ident() {
@@ -775,7 +775,7 @@ public class JavacParser implements Parser {
         return term(EXPR);
     }
 
-    /**
+    /** 解析类型
      * parses (optional) type annotations followed by a type. If the
      * annotations are present before the type and are not consumed during array
      * parsing, this method returns a {@link JCAnnotatedType} consisting of
@@ -1026,7 +1026,7 @@ public class JavacParser implements Parser {
             return opStackSupply.remove(opStackSupply.size() - 1);
         }
 
-    /**
+    /** 基本表达式
      *  Expression3    = PrefixOp Expression3
      *                 | "(" Expr | TypeNoParams ")" Expression3
      *                 | Primary {Selector} {PostfixOp}
@@ -1201,12 +1201,12 @@ public class JavacParser implements Parser {
                 t = insertAnnotationsToMostInner(expr, typeAnnos, false);
             }
             break;
-        case UNDERSCORE: case IDENTIFIER: case ASSERT: case ENUM:
+        case UNDERSCORE: case IDENTIFIER: case ASSERT: case ENUM: // 标识符 等
             if (typeArgs != null) return illegal();
             if ((mode & EXPR) != 0 && peekToken(ARROW)) {
                 t = lambdaExpressionOrStatement(false, false, pos);
             } else {
-                t = toP(F.at(token.pos).Ident(ident()));
+                t = toP(F.at(token.pos).Ident(ident())); // 获取标识符名
                 loop: while (true) {
                     pos = token.pos;
                     final List<JCAnnotation> annos = typeAnnotationsOpt();
@@ -2244,7 +2244,7 @@ public class JavacParser implements Parser {
      */
     JCBlock block(int pos, long flags) {
         accept(LBRACE);
-        List<JCStatement> stats = blockStatements();
+        List<JCStatement> stats = blockStatements(); // 解释块中的块语句
         JCBlock t = F.at(pos).Block(flags, stats);
         while (token.kind == CASE || token.kind == DEFAULT) {
             syntaxError("orphaned", token.kind);
@@ -2334,9 +2334,9 @@ public class JavacParser implements Parser {
             JCModifiers mods = modifiersOpt();
             if (token.kind == INTERFACE ||
                 token.kind == CLASS ||
-                allowEnums && token.kind == ENUM) {
+                allowEnums && token.kind == ENUM) { // 解析块中的类型
                 return List.of(classOrInterfaceOrEnumDeclaration(mods, dc));
-            } else {
+            } else { // 解释块中的变量
                 JCExpression t = parseType();
                 ListBuffer<JCStatement> stats =
                         variableDeclarators(mods, t, new ListBuffer<JCStatement>());
@@ -2417,7 +2417,7 @@ public class JavacParser implements Parser {
         switch (token.kind) {
         case LBRACE:
             return block();
-        case IF: {
+        case IF: { // 解析 if
             nextToken();
             JCExpression cond = parExpression();
             JCStatement thenpart = parseStatementAsBlock();
@@ -2428,7 +2428,7 @@ public class JavacParser implements Parser {
             }
             return F.at(pos).If(cond, thenpart, elsepart);
         }
-        case FOR: {
+        case FOR: { // 解析 for
             nextToken();
             accept(LPAREN);
             List<JCStatement> inits = token.kind == SEMI ? List.<JCStatement>nil() : forInit();
@@ -2453,7 +2453,7 @@ public class JavacParser implements Parser {
                 return F.at(pos).ForLoop(inits, cond, steps, body);
             }
         }
-        case WHILE: {
+        case WHILE: { // 解析 while
             nextToken();
             JCExpression cond = parExpression();
             JCStatement body = parseStatementAsBlock();
@@ -2468,7 +2468,7 @@ public class JavacParser implements Parser {
             accept(SEMI);
             return t;
         }
-        case TRY: {
+        case TRY: { // 解析 try
             nextToken();
             List<JCTree> resources = List.<JCTree>nil();
             if (token.kind == LPAREN) {
@@ -2745,7 +2745,7 @@ public class JavacParser implements Parser {
      *  Modifier = PUBLIC | PROTECTED | PRIVATE | STATIC | ABSTRACT | FINAL
      *           | NATIVE | SYNCHRONIZED | TRANSIENT | VOLATILE | "@"
      *           | "@" Annotation
-     */
+     */// 可选的修饰符解析,比如 public 等
     JCModifiers modifiersOpt() {
         return modifiersOpt(null);
     }
@@ -3186,21 +3186,21 @@ public class JavacParser implements Parser {
         accept(CLASS); // 跳过 class token
         Name name = ident(); // 解析类名
 
-        List<JCTypeParameter> typarams = typeParametersOpt();
+        List<JCTypeParameter> typarams = typeParametersOpt(); // 解析类声明上的泛型参数,如 HelloWorld<T>
 
         JCExpression extending = null;
-        if (token.kind == EXTENDS) {
-            nextToken();
-            extending = parseType();
+        if (token.kind == EXTENDS) { // 处理 extends,解析父类
+            nextToken(); // 读取 extends 后的下一个 token
+            extending = parseType(); // 继承的父类
         }
         List<JCExpression> implementing = List.nil();
-        if (token.kind == IMPLEMENTS) {
-            nextToken();
+        if (token.kind == IMPLEMENTS) { // 处理 implements,解析实现的接口
+            nextToken(); // 读取 implements 后的下一个 token
             implementing = typeList();
         }
-        List<JCTree> defs = classOrInterfaceBody(name, false);
+        List<JCTree> defs = classOrInterfaceBody(name, false); // 解析类的body体
         JCClassDecl result = toP(F.at(pos).ClassDef(
-            mods, name, typarams, extending, implementing, defs));
+            mods, name, typarams, extending, implementing, defs)); // 创建 JCClassDecl 对象
         attach(result, dc);
         return result;
     }
@@ -3340,7 +3340,7 @@ public class JavacParser implements Parser {
      *  InterfaceBody = "{" {InterfaceBodyDeclaration} "}"
      */
     List<JCTree> classOrInterfaceBody(Name className, boolean isInterface) {
-        accept(LBRACE);
+        accept(LBRACE); // 跳过 {
         if (token.pos <= endPosTable.errorEndPos) {
             // error recovery
             skip(false, true, false, false);
@@ -3348,7 +3348,7 @@ public class JavacParser implements Parser {
                 nextToken();
         }
         ListBuffer<JCTree> defs = new ListBuffer<JCTree>();
-        while (token.kind != RBRACE && token.kind != EOF) {
+        while (token.kind != RBRACE && token.kind != EOF) { // 只要不到 },循环解析 token
             defs.appendList(classOrInterfaceBodyDeclaration(className, isInterface));
             if (token.pos <= endPosTable.errorEndPos) {
                // error recovery
@@ -3377,22 +3377,22 @@ public class JavacParser implements Parser {
      *      ( ConstantDeclaratorsRest | InterfaceMethodDeclaratorRest ";" )
      */
     protected List<JCTree> classOrInterfaceBodyDeclaration(Name className, boolean isInterface) {
-        if (token.kind == SEMI) {
+        if (token.kind == SEMI) { // 分号;
             nextToken();
             return List.<JCTree>nil();
         } else {
             Comment dc = token.comment(CommentStyle.JAVADOC);
             int pos = token.pos;
-            JCModifiers mods = modifiersOpt();
+            JCModifiers mods = modifiersOpt(); // 处理可选的 Modifier 部分
             if (token.kind == CLASS ||
                 token.kind == INTERFACE ||
-                allowEnums && token.kind == ENUM) {
+                allowEnums && token.kind == ENUM) { // 解释成员类型
                 return List.<JCTree>of(classOrInterfaceOrEnumDeclaration(mods, dc));
             } else if (token.kind == LBRACE && !isInterface &&
                        (mods.flags & Flags.StandardFlags & ~Flags.STATIC) == 0 &&
-                       mods.annotations.isEmpty()) {
+                       mods.annotations.isEmpty()) { // 解释匿名块
                 return List.<JCTree>of(block(pos, mods.flags));
-            } else {
+            } else { // 解释成员变量 或 成员方法
                 pos = token.pos;
                 List<JCTypeParameter> typarams = typeParametersOpt();
                 // if there are type parameters but no modifiers, save the start
@@ -3464,7 +3464,7 @@ public class JavacParser implements Parser {
      *      FormalParameters [THROWS TypeList] ";"
      *  ConstructorDeclaratorRest =
      *      "(" FormalParameterListOpt ")" [THROWS TypeList] MethodBody
-     */
+     */// 方法声明
     protected JCTree methodDeclaratorRest(int pos,
                               JCModifiers mods,
                               JCExpression type,
@@ -3480,16 +3480,16 @@ public class JavacParser implements Parser {
             this.receiverParam = null;
             // Parsing formalParameters sets the receiverParam, if present
             List<JCVariableDecl> params = formalParameters();
-            if (!isVoid) type = bracketsOpt(type);
+            if (!isVoid) type = bracketsOpt(type); // 解析方法中的形式参数
             List<JCExpression> thrown = List.nil();
-            if (token.kind == THROWS) {
+            if (token.kind == THROWS) { // 解释方法抛出的异常
                 nextToken();
                 thrown = qualidentList();
             }
             JCBlock body = null;
             JCExpression defaultValue;
-            if (token.kind == LBRACE) {
-                body = block();
+            if (token.kind == LBRACE) { // body体,{
+                body = block(); // 解析 body 体
                 defaultValue = null;
             } else {
                 if (token.kind == DEFAULT) {
@@ -3503,7 +3503,7 @@ public class JavacParser implements Parser {
                     // error recovery
                     skip(false, true, false, false);
                     if (token.kind == LBRACE) {
-                        body = block();
+                        body = block(); // 解析 body体
                     }
                 }
             }
@@ -3541,29 +3541,29 @@ public class JavacParser implements Parser {
         return ts.toList();
     }
 
-    /**
+    /** 类声明上的泛型参数
      *  {@literal
      *  TypeParametersOpt = ["<" TypeParameter {"," TypeParameter} ">"]
      *  }
      */
     List<JCTypeParameter> typeParametersOpt() {
-        if (token.kind == LT) {
-            checkGenerics();
+        if (token.kind == LT) { // 小于号 <
+            checkGenerics(); // 是否允许泛型校验
             ListBuffer<JCTypeParameter> typarams = new ListBuffer<JCTypeParameter>();
-            nextToken();
+            nextToken(); // 读取下一个 token. 泛型里的泛型类型.比如<T> 里的 T
             typarams.append(typeParameter());
-            while (token.kind == COMMA) {
-                nextToken();
+            while (token.kind == COMMA) { // 逗号,则循环处理多个参数
+                nextToken(); // 读取下一个 token
                 typarams.append(typeParameter());
             }
-            accept(GT);
-            return typarams.toList();
+            accept(GT); // 跳过 大于号 > 代表泛型参数结束
+            return typarams.toList(); // 返回泛型参数列表,比如 T,E
         } else {
             return List.nil();
         }
     }
 
-    /**
+    /** 类型参数
      *  {@literal
      *  TypeParameter = [Annotations] TypeVariable [TypeParameterBound]
      *  TypeParameterBound = EXTENDS Type {"&" Type}
@@ -3572,13 +3572,13 @@ public class JavacParser implements Parser {
      */
     JCTypeParameter typeParameter() {
         int pos = token.pos;
-        List<JCAnnotation> annos = typeAnnotationsOpt();
-        Name name = ident();
+        List<JCAnnotation> annos = typeAnnotationsOpt(); // 可选的类型注解
+        Name name = ident(); // 参数名
         ListBuffer<JCExpression> bounds = new ListBuffer<JCExpression>();
-        if (token.kind == EXTENDS) {
+        if (token.kind == EXTENDS) { // 解释泛型类型参数中声明的上界
             nextToken();
             bounds.append(parseType());
-            while (token.kind == AMP) {
+            while (token.kind == AMP) { // 循环解析多个上界
                 nextToken();
                 bounds.append(parseType());
             }
