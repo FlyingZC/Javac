@@ -241,11 +241,11 @@ public class Enter extends JCTree.Visitor {
  * Visitor methods for phase 1: class enter
  *************************************************************************/
 
-    /** Visitor argument: the current environment.
+    /** Visitor argument: the current environment.当前要分析的语法树节点的上下文环境
      */
     protected Env<AttrContext> env;
 
-    /** Visitor result: the computed type.
+    /** Visitor result: the computed type.处理当前语法节点tree后得到的类型
      */
     Type result;
 
@@ -273,15 +273,15 @@ public class Enter extends JCTree.Visitor {
     <T extends JCTree> List<Type> classEnter(List<T> trees, Env<AttrContext> env) {
         ListBuffer<Type> ts = new ListBuffer<Type>();
         for (List<T> l = trees; l.nonEmpty(); l = l.tail) {
-            Type t = classEnter(l.head, env);
+            Type t = classEnter(l.head, env); // 处理trees列表中的每个元素
             if (t != null)
-                ts.append(t);
+                ts.append(t); // 将处理后的结果添加到ts列表中并返回
         }
         return ts.toList();
     }
 
     @Override
-    public void visitTopLevel(JCCompilationUnit tree) {
+    public void visitTopLevel(JCCompilationUnit tree) { // 对编译单元进行处理
         JavaFileObject prev = log.useSource(tree.sourcefile);
         boolean addEnv = false;
         boolean isPkgInfo = tree.sourcefile.isNameCompatible("package-info",
@@ -299,8 +299,8 @@ public class Enter extends JCTree.Visitor {
         } else {
             tree.packge = syms.unnamedPackage;
         }
-        tree.packge.complete(); // Find all classes in package.
-        Env<AttrContext> topEnv = topLevelEnv(tree);
+        tree.packge.complete(); // Find all classes in package.完成包下成员符号的填充
+        Env<AttrContext> topEnv = topLevelEnv(tree); // 创建编译单元对应的环境
 
         // Save environment of package-info.java file.
         if (isPkgInfo) {
@@ -333,7 +333,7 @@ public class Enter extends JCTree.Visitor {
             c.members_field = new Scope(c);
             tree.packge.package_info = c;
         }
-        classEnter(tree.defs, topEnv);
+        classEnter(tree.defs, topEnv); // 遍历当前编译单元下的成员
         if (addEnv) {
             todo.append(topEnv);
         }
@@ -342,11 +342,11 @@ public class Enter extends JCTree.Visitor {
     }
 
     @Override
-    public void visitClassDef(JCClassDecl tree) {
+    public void visitClassDef(JCClassDecl tree) { // 为当前的类型生成对应的 ClassSymbol对象
         Symbol owner = env.info.scope.owner;
         Scope enclScope = enterScope(env);
         ClassSymbol c;
-        if (owner.kind == PCK) {
+        if (owner.kind == PCK) { // 处理顶层类
             // We are seeing a toplevel class.
             PackageSymbol packge = (PackageSymbol)owner;
             for (Symbol q = packge; q != null && q.kind == PCK; q = q.owner)
@@ -363,13 +363,13 @@ public class Enter extends JCTree.Visitor {
                 result = null;
                 return;
             }
-            if (owner.kind == TYP) {
+            if (owner.kind == TYP) { // 处理成员类
                 // We are seeing a member class.
                 c = reader.enterClass(tree.name, (TypeSymbol)owner);
                 if ((owner.flags_field & INTERFACE) != 0) {
                     tree.mods.flags |= PUBLIC | STATIC;
                 }
-            } else {
+            } else { // 处理本地类
                 // We are seeing a local class.
                 c = reader.defineClass(tree.name, owner);
                 c.flatname = chk.localClassName(c);
@@ -484,12 +484,12 @@ public class Enter extends JCTree.Visitor {
         if (memberEnter.completionEnabled) uncompleted = new ListBuffer<ClassSymbol>();
 
         try {
-            // enter all classes, and construct uncompleted list
-            classEnter(trees, null);
+            // enter all classes, and construct uncompleted list.输入所有类,构造未完成列表
+            classEnter(trees, null); // 完成类符号输入.将除本地类外的所有类对应的 ClassSymbol 对象 存储到 uncompleted 列表中
 
-            // complete all uncompleted classes in memberEnter
+            // complete all uncompleted classes in memberEnter.完成所有未完成的类
             if  (memberEnter.completionEnabled) {
-                while (uncompleted.nonEmpty()) {
+                while (uncompleted.nonEmpty()) { // 循环 uncompleted 列表,调用 clazz.complete() 方法完成每个类中成员符号的填充
                     ClassSymbol clazz = uncompleted.next();
                     if (c == null || c == clazz || prevUncompleted == null)
                         clazz.complete();

@@ -59,12 +59,12 @@ import static com.sun.tools.javac.code.TypeTag.TYPEVAR;
 public abstract class Symbol implements Element {
     // public Throwable debug = new Throwable();
 
-    /** The kind of this symbol.
+    /** The kind of this symbol. 符号的具体类型
      *  @see Kinds
      */
     public int kind;
 
-    /** The flags of this symbol.
+    /** The flags of this symbol. 符号的修饰符
      */
     public long flags_field;
 
@@ -103,7 +103,7 @@ public abstract class Symbol implements Element {
         return null;
     }
 
-    /** The name of this symbol in Utf8 representation.
+    /** The name of this symbol in Utf8 representation. 符号名称
      */
     public Name name;
 
@@ -111,7 +111,7 @@ public abstract class Symbol implements Element {
      */
     public Type type;
 
-    /** The owner of this symbol.
+    /** The owner of this symbol. 当前符号所属的符号
      */
     public Symbol owner;
 
@@ -313,7 +313,7 @@ public abstract class Symbol implements Element {
         return (ClassSymbol) prev;
     }
 
-    /** The package which indirectly owns this symbol.
+    /** The package which indirectly owns this symbol.间接拥有该符号的包
      */
     public PackageSymbol packge() {
         Symbol sym = this;
@@ -547,7 +547,7 @@ public abstract class Symbol implements Element {
     }
 
     /** A class for type symbols. Type variables are represented by instances
-     *  of this class, classes and packages by instances of subclasses.
+     *  of this class, classes and packages by instances of subclasses. 表示类型符号
      */
     public static class TypeSymbol
             extends Symbol implements TypeParameterElement {
@@ -559,22 +559,22 @@ public abstract class Symbol implements Element {
             super(TYP, flags, name, type, owner);
         }
 
-        /** form a fully qualified name from a name and an owner
+        /** form a fully qualified name from a name and an owner 类的全限定名
          */
-        static public Name formFullName(Name name, Symbol owner) {
+        static public Name formFullName(Name name, Symbol owner) { // name:当前符号的名称, owner:当前符号所属的符号
             if (owner == null) return name;
             if (((owner.kind != ERR)) &&
                 ((owner.kind & (VAR | MTH)) != 0
                  || (owner.kind == TYP && owner.type.hasTag(TYPEVAR))
                  )) return name;
             Name prefix = owner.getQualifiedName();
-            if (prefix == null || prefix == prefix.table.names.empty)
+            if (prefix == null || prefix == prefix.table.names.empty) // 前缀为空
                 return name;
             else return prefix.append('.', name);
         }
 
         /** form a fully qualified name from a name and an owner, after
-         *  converting to flat representation
+         *  converting to flat representation 全限定名
          */
         static public Name formFlatName(Name name, Symbol owner) {
             if (owner == null ||
@@ -664,7 +664,7 @@ public abstract class Symbol implements Element {
      */
     public static class PackageSymbol extends TypeSymbol
         implements PackageElement {
-
+        // 保存包下面的 成员符号
         public Scope members_field;
         public Name fullname;
         public ClassSymbol package_info; // see bug 6443073
@@ -769,7 +769,7 @@ public abstract class Symbol implements Element {
         public JavaFileObject sourcefile;
 
         /** the classfile from where to load this class
-         *  this will have extension .class or .java
+         *  this will have extension .class or .java 加载该类的类文件 .class或.java结尾
          */
         public JavaFileObject classfile;
 
@@ -1083,7 +1083,7 @@ public abstract class Symbol implements Element {
         }
     }
 
-    /** A class for method symbols.
+    /** A class for method symbols. 方法符号
      */
     public static class MethodSymbol extends Symbol implements ExecutableElement {
 

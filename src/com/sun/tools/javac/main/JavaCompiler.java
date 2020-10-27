@@ -632,8 +632,8 @@ public class JavaCompiler implements ClassReader.SourceCompleter {
                 keepComments = true;
                 genEndPos = true;
             }
-            Parser parser = parserFactory.newParser(content, keepComments(), genEndPos, lineDebugInfo);
-            tree = parser.parseCompilationUnit();
+            Parser parser = parserFactory.newParser(content, keepComments(), genEndPos, lineDebugInfo); // 创建 Scanner,用于读取 tokens
+            tree = parser.parseCompilationUnit(); // 解析编译单元,对应一个Java文件
             if (verbose) {
                 log.printVerbose("parsing.done", Long.toString(elapsed(msec)));
             }
@@ -777,7 +777,7 @@ public class JavaCompiler implements ClassReader.SourceCompleter {
         JavaFileObject prev = log.useSource(filename);
 
         try {
-            tree = parse(filename, filename.getCharContent(false));
+            tree = parse(filename, filename.getCharContent(false)); // 进行词法处理后,生成JCCompilationUnit对象
         } catch (IOException e) {
             log.error("error.reading.file", filename, JavacFileManager.getMessage(e));
             tree = make.TopLevel(List.<JCTree.JCAnnotation>nil(), null, List.<JCTree>nil());
@@ -790,7 +790,7 @@ public class JavaCompiler implements ClassReader.SourceCompleter {
             taskListener.started(e);
         }
 
-        enter.complete(List.of(tree), c);
+        enter.complete(List.of(tree), c); // 完成对依赖文件的处理
 
         if (!taskListener.isEmpty()) {
             TaskEvent e = new TaskEvent(TaskEvent.Kind.ENTER, tree);

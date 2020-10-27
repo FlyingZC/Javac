@@ -352,7 +352,7 @@ public class Main {
      */
     public Result compile(String[] args) {
         Context context = new Context();
-        JavacFileManager.preRegister(context); // can't create it until Log has been set up
+        JavacFileManager.preRegister(context); // can't create it until Log has been set up 先 预注册 context,后面再向里面设置属性
         Result result = compile(args, context);
         if (fileManager instanceof JavacFileManager) {
             // A fresh context was created above, so jfm must be a JavacFileManager
@@ -383,7 +383,7 @@ public class Main {
                        Iterable<? extends Processor> processors)
     {
         context.put(Log.outKey, out);
-        log = Log.instance(context);
+        log = Log.instance(context); // 创建 Log
 
         if (options == null)
             options = Options.instance(context); // creates a new one

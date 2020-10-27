@@ -132,7 +132,7 @@ public class TreeMaker implements JCTree.Factory {
                     && ((JCExpressionStatement)node).expr instanceof JCErroneous),
                 node.getClass().getSimpleName());
         JCCompilationUnit tree = new JCCompilationUnit(packageAnnotations, pid, defs,
-                                     null, null, null, null);
+                                     null, null, null, null); // 创建一个 JCCompilationUnit 并返回
         tree.pos = pos;
         return tree;
     }

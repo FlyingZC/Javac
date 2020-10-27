@@ -43,7 +43,7 @@ import static com.sun.tools.javac.code.TypeTag.TYPEVAR;
  *  <p><b>This is NOT part of any supported API.
  *  If you write code that depends on this, you do so at your own risk.
  *  This code and its internal interfaces are subject to change or
- *  deletion without notice.</b>
+ *  deletion without notice.</b> 符号kinds
  */
 public class Kinds {
 
@@ -53,23 +53,23 @@ public class Kinds {
      */
     public final static int NIL = 0;
 
-    /** The kind of package symbols.
+    /** The kind of package symbols. 包符号
      */
     public final static int PCK = 1 << 0;
 
-    /** The kind of type symbols (classes, interfaces and type variables).
+    /** The kind of type symbols (classes, interfaces and type variables).类型符号,包括 ClassSymbol 或 TypeSymbol
      */
     public final static int TYP = 1 << 1;
 
-    /** The kind of variable symbols.
+    /** The kind of variable symbols. 变量符号
      */
     public final static int VAR = 1 << 2;
 
-    /** The kind of values (variables or non-variable expressions), includes VAR.
+    /** The kind of values (variables or non-variable expressions), includes VAR. 包含 VarSymbol 或 常量值
      */
     public final static int VAL = (1 << 3) | VAR;
 
-    /** The kind of methods.
+    /** The kind of methods. 包含 MethodSymbol
      */
     public final static int MTH = 1 << 4;
 

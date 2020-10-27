@@ -297,7 +297,7 @@ public class Convert {
     }
 
     /** Return the package name of a class name, excluding the trailing '.',
-     *  "" if not existent.
+     *  "" if not existent.获取全类名中的包名
      */
     public static Name packagePart(Name classname) {
         return classname.subName(0, classname.lastIndexOf((byte)'.'));

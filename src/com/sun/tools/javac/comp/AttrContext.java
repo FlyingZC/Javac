@@ -30,7 +30,7 @@ import com.sun.tools.javac.code.*;
 
 /** Contains information specific to the attribute and enter
  *  passes, to be used in place of the generic field in environments.
- *
+ *  作用域
  *  <p><b>This is NOT part of any supported API.
  *  If you write code that depends on this, you do so at your own risk.
  *  This code and its internal interfaces are subject to change or

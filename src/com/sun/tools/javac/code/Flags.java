@@ -33,7 +33,7 @@ import java.util.Set;
 import javax.lang.model.element.Modifier;
 
 /** Access flags and other modifiers for Java classes and members.
- *
+ *  类 和 成员 的 访问标志 和 其他修饰符
  *  <p><b>This is NOT part of any supported API.
  *  If you write code that depends on this, you do so at your own risk.
  *  This code and its internal interfaces are subject to change or

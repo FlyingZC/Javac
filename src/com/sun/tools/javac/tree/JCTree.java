@@ -2487,9 +2487,9 @@ public abstract class JCTree implements Tree, Cloneable, DiagnosticPosition {
     /** A generic visitor class for trees.
      */
     public static abstract class Visitor {
-        public void visitTopLevel(JCCompilationUnit that)    { visitTree(that); }
+        public void visitTopLevel(JCCompilationUnit that)    { visitTree(that); } // 对编译单元进行处理,一个Java源文件
         public void visitImport(JCImport that)               { visitTree(that); }
-        public void visitClassDef(JCClassDecl that)          { visitTree(that); }
+        public void visitClassDef(JCClassDecl that)          { visitTree(that); } // 对定义的类进行处理
         public void visitMethodDef(JCMethodDecl that)        { visitTree(that); }
         public void visitVarDef(JCVariableDecl that)         { visitTree(that); }
         public void visitSkip(JCSkip that)                   { visitTree(that); }
@@ -2533,7 +2533,7 @@ public abstract class JCTree implements Tree, Cloneable, DiagnosticPosition {
         public void visitTypeApply(JCTypeApply that)         { visitTree(that); }
         public void visitTypeUnion(JCTypeUnion that)         { visitTree(that); }
         public void visitTypeIntersection(JCTypeIntersection that)  { visitTree(that); }
-        public void visitTypeParameter(JCTypeParameter that) { visitTree(that); }
+        public void visitTypeParameter(JCTypeParameter that) { visitTree(that); } // 对类声明的类型变量进行处理
         public void visitWildcard(JCWildcard that)           { visitTree(that); }
         public void visitTypeBoundKind(TypeBoundKind that)   { visitTree(that); }
         public void visitAnnotation(JCAnnotation that)       { visitTree(that); }
@@ -2542,7 +2542,7 @@ public abstract class JCTree implements Tree, Cloneable, DiagnosticPosition {
         public void visitErroneous(JCErroneous that)         { visitTree(that); }
         public void visitLetExpr(LetExpr that)               { visitTree(that); }
 
-        public void visitTree(JCTree that)                   { Assert.error(); }
+        public void visitTree(JCTree that)                   { Assert.error(); } // 对除 JCCompilationUnit、JCClassDecl 与 TypeParameter 树节点外的其他语法树节点进行处理
     }
 
 }

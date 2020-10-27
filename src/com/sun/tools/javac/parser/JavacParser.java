@@ -294,7 +294,7 @@ public class JavacParser implements Parser {
     }
 
     public void nextToken() {
-        S.nextToken(); // 读取一个token
+        S.nextToken(); // 调用Scanner,读取一个token
         token = S.token();
     }
 
@@ -3355,7 +3355,7 @@ public class JavacParser implements Parser {
                skip(false, true, true, false);
            }
         }
-        accept(RBRACE);
+        accept(RBRACE); // 跳过 }
         return defs.toList();
     }
 
@@ -3429,9 +3429,9 @@ public class JavacParser implements Parser {
                         isInterface, true, dc));
                 } else {
                     pos = token.pos;
-                    Name name = ident();
+                    Name name = ident(); // 标识符名
                     if (token.kind == LPAREN) {
-                        return List.of(methodDeclaratorRest(
+                        return List.of(methodDeclaratorRest( // 方法声明
                             pos, mods, type, name, typarams,
                             isInterface, isVoid, dc));
                     } else if (!isVoid && typarams.isEmpty()) {
@@ -3479,7 +3479,7 @@ public class JavacParser implements Parser {
         try {
             this.receiverParam = null;
             // Parsing formalParameters sets the receiverParam, if present
-            List<JCVariableDecl> params = formalParameters();
+            List<JCVariableDecl> params = formalParameters(); // 参数列表
             if (!isVoid) type = bracketsOpt(type); // 解析方法中的形式参数
             List<JCExpression> thrown = List.nil();
             if (token.kind == THROWS) { // 解释方法抛出的异常
@@ -3511,7 +3511,7 @@ public class JavacParser implements Parser {
             JCMethodDecl result =
                     toP(F.at(pos).MethodDef(mods, name, type, typarams,
                                             receiverParam, params, thrown,
-                                            body, defaultValue));
+                                            body, defaultValue)); // 方法声明
             attach(result, dc);
             return result;
         } finally {

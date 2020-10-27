@@ -55,7 +55,7 @@ public class Symtab {
     protected static final Context.Key<Symtab> symtabKey =
         new Context.Key<Symtab>();
 
-    /** Get the symbol table instance. */
+    /** Get the symbol table instance.获取symbol符号 表 */
     public static Symtab instance(Context context) {
         Symtab instance = context.get(symtabKey);
         if (instance == null)
@@ -84,7 +84,7 @@ public class Symtab {
      */
     public final PackageSymbol rootPackage;
 
-    /** A symbol for the unnamed package.
+    /** A symbol for the unnamed package.无名包符号
      */
     public final PackageSymbol unnamedPackage;
 
@@ -394,10 +394,10 @@ public class Symtab {
             }
         };
 
-        // create the basic builtin symbols
+        // create the basic builtin symbols. rootPackage 是所有一级包名对应的 PackageSymbol 对象的 owner 值
         rootPackage = new PackageSymbol(names.empty, null);
         final JavacMessages messages = JavacMessages.instance(context);
-        unnamedPackage = new PackageSymbol(names.empty, rootPackage) {
+        unnamedPackage = new PackageSymbol(names.empty, rootPackage) { // 代表 无名包 符号
                 public String toString() {
                     return messages.getLocalizedString("compiler.misc.unnamed.package");
                 }
@@ -466,7 +466,7 @@ public class Symtab {
         reader = ClassReader.instance(context);
         reader.init(this);
 
-        // Enter predefined classes.
+        // Enter predefined classes.穿件下面这些类型对应的 ClassSymbol
         objectType = enterClass("java.lang.Object");
         classType = enterClass("java.lang.Class");
         stringType = enterClass("java.lang.String");

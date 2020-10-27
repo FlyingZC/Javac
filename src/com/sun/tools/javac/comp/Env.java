@@ -35,7 +35,7 @@ import java.util.NoSuchElementException;
  *  the enclosing class, or the enclosing toplevel node. They also contain
  *  a generic component, represented as a type parameter, to carry further
  *  information specific to individual passes.
- *
+ *  保存当前树节点的关于抽象语法树的上下文信息
  *  <p><b>This is NOT part of any supported API.
  *  If you write code that depends on this, you do so at your own risk.
  *  This code and its internal interfaces are subject to change or
@@ -51,19 +51,19 @@ public class Env<A> implements Iterable<Env<A>> {
      */
     public Env<A> outer;
 
-    /** The tree with which this environment is associated.
+    /** The tree with which this environment is associated.当前节点的父节点
      */
     public JCTree tree;
 
-    /** The enclosing toplevel tree.
+    /** The enclosing toplevel tree.当前节点所属的编译单元
      */
     public JCTree.JCCompilationUnit toplevel;
 
-    /** The next enclosing class definition.
+    /** The next enclosing class definition.当前节点所属的分析JCClassDecl类型的节点
      */
     public JCTree.JCClassDecl enclClass;
 
-    /** The next enclosing method definition.
+    /** The next enclosing method definition.当前节点所属的JCMethodDecl类型的节点
      */
     public JCTree.JCMethodDecl enclMethod;
 

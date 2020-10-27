@@ -75,7 +75,7 @@ public class Tokens {
     protected Tokens(Context context) {
         context.put(tokensKey, this);
         names = Names.instance(context);
-        for (TokenKind t : TokenKind.values()) {
+        for (TokenKind t : TokenKind.values()) { // 遍历所有 token 类型
             if (t.name != null)
                 enterKeyword(t.name, t);
             else
@@ -109,7 +109,7 @@ public class Tokens {
         return lookupKind(names.fromString(name));
     }
 
-    /**
+    /** 所有 token 类型
      * This enum defines all tokens used by the javac scanner. A token is
      * optionally associated with a name.
      */
