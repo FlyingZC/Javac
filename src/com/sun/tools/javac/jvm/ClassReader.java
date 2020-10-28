@@ -2311,7 +2311,7 @@ public class ClassReader implements Completer {
     }
 
     /** Create a new toplevel or member class symbol with given name
-     *  and owner and enter in `classes' unless already there.
+     *  and owner and enter in `classes' unless already there.查询name对应的ClassSymbol
      */
     public ClassSymbol enterClass(Name name, TypeSymbol owner) {
         Name flatname = TypeSymbol.formFlatName(name, owner);
@@ -2374,7 +2374,7 @@ public class ClassReader implements Completer {
     private boolean suppressFlush = false;
 
     /** Completion for classes to be loaded. Before a class is loaded
-     *  we make sure its enclosing class (if any) is loaded.
+     *  we make sure its enclosing class (if any) is loaded.完成 类 或 包符号下的 members_field 的填充
      */
     public void complete(Symbol sym) throws CompletionFailure {
         if (sym.kind == TYP) { // 当 sym.kind 值为 TYP 时,会加载类成员 并 将成员符号 填充到 ClassSymbol 对象的 members_field 中
@@ -2632,7 +2632,7 @@ public class ClassReader implements Completer {
             ? p.package_info
             : (ClassSymbol) p.members_field.lookup(classname).sym; // 在 p.members_field 缓存中查找 ClassSymbol,若不存在,说明这个包下的成员没有被加载过
         if (c == null) { // 当前的 获取 ClassSymbol 还没有填充到 p.members_field中,调用 enterClass()方法 获取 ClassSymbol
-            c = enterClass(classname, p); // 获取ClassSymbol
+            c = enterClass(classname, p); // 根据 类名 和 当前packageSymbol 获取(或创建) ClassSymbol
             if (c.classfile == null) // only update the file if's it's newly created
                 c.classfile = file; // 保存class源文件
             if (isPkgInfo) {
@@ -2694,7 +2694,7 @@ public class ClassReader implements Completer {
         String packageName = p.fullname.toString();
 
         Set<JavaFileObject.Kind> kinds = getPackageFileKinds(); // 返回 source 和 class 两种 Java文件类型
-        // 调用 list() 方法从 PLATFORM_CLASS_PATH 中查找文件并调用 fillIn() 方法填充 PackageSymbol 对象的 members_field
+        // 1.调用 list() 方法从 PLATFORM_CLASS_PATH 中查找文件; 2.调用 fillIn() 方法填充 PackageSymbol 对象的 members_field
         fillIn(p, PLATFORM_CLASS_PATH,
                fileManager.list(PLATFORM_CLASS_PATH,
                                 packageName,
@@ -2762,7 +2762,7 @@ public class ClassReader implements Completer {
         }
         verbosePath = false;
     }
-    // where 完成对PackageSymbol对象中members_field的填充
+    // where 遍历给定的所有文件,创建对应的 ClassSymbol,填充到 PackageSymbol.members_field 中
         private void fillIn(PackageSymbol p,
                             Location location,
                             Iterable<JavaFileObject> files)
@@ -2777,7 +2777,7 @@ public class ClassReader implements Completer {
                     String simpleName = binaryName.substring(binaryName.lastIndexOf(".") + 1);// 获取文件的 simpleName
                     if (SourceVersion.isIdentifier(simpleName) ||
                         simpleName.equals("package-info"))
-                        includeClassFile(p, fo);
+                        includeClassFile(p, fo); // // 根据文件 获取类名.根据类名 和 当前packageSymbol 获取(或创建) ClassSymbol,保存到  p.members_field 中
                     break;
                 }
                 default:

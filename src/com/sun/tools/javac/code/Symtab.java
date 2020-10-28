@@ -50,7 +50,7 @@ import static com.sun.tools.javac.code.TypeTag.*;
  *  This code and its internal interfaces are subject to change or
  *  deletion without notice.</b>
  */
-public class Symtab {
+public class Symtab { // 符号表
     /** The context key for the symbol table. */
     protected static final Context.Key<Symtab> symtabKey =
         new Context.Key<Symtab>();
@@ -195,18 +195,18 @@ public class Symtab {
     /** A hashtable containing the encountered top-level and member classes,
      *  indexed by flat names. The table does not contain local classes.
      *  It should be updated from the outside to reflect classes defined
-     *  by compiled source files.
+     *  by compiled source files.类符号缓存
      */
     public final Map<Name, ClassSymbol> classes = new HashMap<Name, ClassSymbol>();
 
     /** A hashtable containing the encountered packages.
      *  the table should be updated from outside to reflect packages defined
-     *  by compiled source files.
+     *  by compiled source files.包符号缓存
      */
     public final Map<Name, PackageSymbol> packages = new HashMap<Name, PackageSymbol>();
 
     public void initType(Type type, ClassSymbol c) {
-        type.tsym = c;
+        type.tsym = c; // 给 type 赋值 ClassSymbol
         typeOfTag[type.tag.ordinal()] = type;
     }
 

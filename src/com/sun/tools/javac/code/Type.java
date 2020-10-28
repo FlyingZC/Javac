@@ -88,7 +88,7 @@ public class Type implements PrimitiveType {
      */
     protected TypeTag tag;
 
-    /** The defining class / interface / package / type variable.
+    /** The defining class / interface / package / type variable.保存类型符号
      */
     public TypeSymbol tsym;
 

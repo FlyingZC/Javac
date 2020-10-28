@@ -131,7 +131,7 @@ public class MemberEnter extends JCTree.Visitor implements Completer {
     /* ---------- Processing import clauses ----------------
      */
 
-    /** Import all classes of a class or package on demand.
+    /** Import all classes of a class or package on demand.处理非静态的,带星号的导入声明
      *  @param pos           Position to be used for error reporting.
      *  @param tsym          The class or package the members of which are imported.
      *  @param env           The env in which the imported classes will be entered.
@@ -139,7 +139,7 @@ public class MemberEnter extends JCTree.Visitor implements Completer {
     private void importAll(int pos,
                            final TypeSymbol tsym,
                            Env<AttrContext> env) {
-        // Check that packages imported from exist (JLS ???).
+        // Check that packages imported from exist (JLS ???).如果不能查找到java.lang包,程序直接退出,否则报错
         if (tsym.kind == PCK && tsym.members().elems == null && !tsym.exists()) {
             // If we can't find java.lang, exit immediately.
             if (((PackageSymbol)tsym).fullname.equals(names.java_lang)) {
@@ -152,7 +152,7 @@ public class MemberEnter extends JCTree.Visitor implements Completer {
         env.toplevel.starImportScope.importAll(tsym.members());
     }
 
-    /** Import all static members of a class or package on demand.
+    /** Import all static members of a class or package on demand.静态导入声明
      *  @param pos           Position to be used for error reporting.
      *  @param tsym          The class or package the members of which are imported.
      *  @param env           The env in which the imported classes will be entered.
@@ -165,19 +165,19 @@ public class MemberEnter extends JCTree.Visitor implements Completer {
         final PackageSymbol packge = env.toplevel.packge;
         final TypeSymbol origin = tsym;
 
-        // enter imported types immediately
+        // enter imported types immediately 导入符号
         new Object() {
             Set<Symbol> processed = new HashSet<Symbol>();
             void importFrom(TypeSymbol tsym) {
                 if (tsym == null || !processed.add(tsym))
                     return;
 
-                // also import inherited names
+                // also import inherited names 导入父类中继承的,子类可以直接访问到父类中的静态导入
                 importFrom(types.supertype(tsym.type).tsym);
                 for (Type t : types.interfaces(tsym.type))
-                    importFrom(t.tsym);
+                    importFrom(t.tsym); // 导入接口中继承的
 
-                final Scope fromScope = tsym.members();
+                final Scope fromScope = tsym.members(); // 将tsym中符合条件的成员符号导入到toScope中
                 for (Scope.Entry e = fromScope.elems; e != null; e = e.sibling) {
                     Symbol sym = e.sym;
                     if (sym.kind == TYP &&
@@ -190,8 +190,8 @@ public class MemberEnter extends JCTree.Visitor implements Completer {
             }
         }.importFrom(tsym);
 
-        // enter non-types before annotations that might use them
-        annotate.earlier(new Annotate.Annotator() {
+        // enter non-types before annotations that might use them 延迟导入除接口或类对应的符号外的其他符号
+        annotate.earlier(new Annotate.Annotator() { // 创建一个 Annotate.Annotator 匿名类对象实现延迟导入
             Set<Symbol> processed = new HashSet<Symbol>();
 
             public String toString() {
@@ -361,18 +361,18 @@ public class MemberEnter extends JCTree.Visitor implements Completer {
                    List<JCExpression> thrown,
                    Env<AttrContext> env) {
 
-        // Enter and attribute type parameters.
+        // Enter and attribute type parameters.标注方法声明的形式类型参数
         List<Type> tvars = enter.classEnter(typarams, env);
         attr.attribTypeVariables(typarams, env);
 
-        // Enter and attribute value parameters.
+        // Enter and attribute value parameters.标注方法的形式参数
         ListBuffer<Type> argbuf = new ListBuffer<Type>();
         for (List<JCVariableDecl> l = params; l.nonEmpty(); l = l.tail) {
             memberEnter(l.head, env);
             argbuf.append(l.head.vartype.type);
         }
 
-        // Attribute result type, if one is given.
+        // Attribute result type, if one is given. 标注方法返回值
         Type restype = res == null ? syms.voidType : attr.attribType(res, env);
 
         // Attribute receiver type, if one is given.
@@ -384,7 +384,7 @@ public class MemberEnter extends JCTree.Visitor implements Completer {
             recvtype = null;
         }
 
-        // Attribute thrown exceptions.
+        // Attribute thrown exceptions.标注方法抛出的异常
         ListBuffer<Type> thrownbuf = new ListBuffer<Type>();
         for (List<JCExpression> l = thrown; l.nonEmpty(); l = l.tail) {
             Type exc = attr.attribType(l.head, env);
@@ -416,7 +416,7 @@ public class MemberEnter extends JCTree.Visitor implements Completer {
         Env<AttrContext> prevEnv = this.env;
         try {
             this.env = env;
-            tree.accept(this);
+            tree.accept(this); // 使用 MemberEnter 访问 tree topLevel
         }  catch (CompletionFailure ex) {
             chk.completionError(tree.pos(), ex);
         } finally {
@@ -537,14 +537,14 @@ public class MemberEnter extends JCTree.Visitor implements Completer {
         // process package annotations
         annotateLater(tree.packageAnnotations, env, tree.packge);
 
-        // Import-on-demand java.lang.
+        // Import-on-demand java.lang.  将 java.lang 包下的符号 导入到当前编译单元中,这样程序就中不需要明确声明对 java.lang 包的导入也可以使用包下定义的类型了
         importAll(tree.pos, reader.enterPackage(names.java_lang), env);
 
-        // Process all import clauses.
+        // Process all import clauses. 对编译单元中的成员进行处理,主要是对程序中的导入声明进行处理
         memberEnter(tree.defs, env);
     }
 
-    // process the non-static imports and the static imports of types.
+    // process the non-static imports and the static imports of types.处理Javac源代码中的导入声明
     public void visitImport(JCImport tree) {
         JCFieldAccess imp = (JCFieldAccess)tree.qualid;
         Name name = TreeInfo.name(imp);
@@ -558,16 +558,16 @@ public class MemberEnter extends JCTree.Visitor implements Completer {
             // Import on demand.
             chk.checkCanonical(imp.selected);
             if (tree.staticImport)
-                importStaticAll(tree.pos, p, env);
+                importStaticAll(tree.pos, p, env); // 处理ImportDeclaration文法的第 4 种导入形式 import static TypeName . * ;
             else
-                importAll(tree.pos, p, env);
+                importAll(tree.pos, p, env);// 处理ImportDeclaration文法的第 2 种导入形式  import PackageOrTypeName . * ;
         } else {
             // Named type import.
             if (tree.staticImport) {
-                importNamedStatic(tree.pos(), p, name, localEnv);
+                importNamedStatic(tree.pos(), p, name, localEnv);// 处理ImportDeclaration文法的第 3 种导入形式  import static TypeName . Identifier ;
                 chk.checkCanonical(imp.selected);
             } else {
-                TypeSymbol c = attribImportType(imp, localEnv).tsym;
+                TypeSymbol c = attribImportType(imp, localEnv).tsym;// 处理ImportDeclaration文法的第 1 种导入形式  import TypeName ;
                 chk.checkCanonical(imp);
                 importNamed(tree.pos(), c, env);
             }
@@ -575,8 +575,8 @@ public class MemberEnter extends JCTree.Visitor implements Completer {
     }
 
     public void visitMethodDef(JCMethodDecl tree) {
-        Scope enclScope = enter.enterScope(env);
-        MethodSymbol m = new MethodSymbol(0, tree.name, null, enclScope.owner);
+        Scope enclScope = enter.enterScope(env); // 获取方法所在的作用域
+        MethodSymbol m = new MethodSymbol(0, tree.name, null, enclScope.owner); // 对tree树节点进行标注
         m.flags_field = chk.checkFlags(tree.pos(), tree.mods.flags, m, tree);
         tree.sym = m;
 
@@ -641,7 +641,7 @@ public class MemberEnter extends JCTree.Visitor implements Completer {
         if ((tree.mods.flags & STATIC) != 0) localEnv.info.staticLevel++;
         return localEnv;
     }
-
+    /**访问成员变量,局部变量*/
     public void visitVarDef(JCVariableDecl tree) {
         Env<AttrContext> localEnv = env;
         if ((tree.mods.flags & STATIC) != 0 ||
@@ -907,7 +907,7 @@ public class MemberEnter extends JCTree.Visitor implements Completer {
 
         JavaFileObject prev = log.useSource(env.toplevel.sourcefile);
         try {
-            // Save class environment for later member enter (2) processing.
+            // Save class environment for later member enter (2) processing.保存env
             halfcompleted.append(env);
 
             // Mark class as not yet attributed.
@@ -915,12 +915,12 @@ public class MemberEnter extends JCTree.Visitor implements Completer {
 
             // If this is a toplevel-class, make sure any preceding import
             // clauses have been seen.
-            if (c.owner.kind == PCK) {
+            if (c.owner.kind == PCK) { // 若当前 类符号 的 owner 是 包类型
                 memberEnter(env.toplevel, env.enclosing(TOPLEVEL));
                 todo.append(env);
             }
 
-            if (c.owner.kind == TYP)
+            if (c.owner.kind == TYP) // c 是一个成员类型,c的 owner 是类,保证宿主类已经完成符号输入
                 c.owner.complete();
 
             // create an environment for evaluating the base clauses

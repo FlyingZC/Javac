@@ -235,7 +235,7 @@ public class JavaCompiler implements ClassReader.SourceCompleter {
      */
     protected JNIWriter jniWriter;
 
-    /** The module for the symbol table entry phases.
+    /** The module for the symbol table entry phases.用于处理 符号表输入阶段的模块
      */
     protected Enter enter;
 
@@ -863,7 +863,7 @@ public class JavaCompiler implements ClassReader.SourceCompleter {
             delegateCompiler =
                 processAnnotations(
                     enterTrees(stopIfError(CompileState.PARSE, parseFiles(sourceFileObjects))), // 1.parseFiles()解析Java文件列表
-                    classnames);
+                    classnames); // 2.enterTrees()完成符号输入; // 3.processAnnotations()处理插入式注解
 
             delegateCompiler.compile2();
             delegateCompiler.close();
@@ -986,7 +986,7 @@ public class JavaCompiler implements ClassReader.SourceCompleter {
                 taskListener.started(e);
             }
         }
-
+        // 遍历 处理单元,生成符号表
         enter.main(roots);
 
         if (!taskListener.isEmpty()) {

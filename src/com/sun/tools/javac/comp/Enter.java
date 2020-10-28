@@ -252,14 +252,14 @@ public class Enter extends JCTree.Visitor {
     /** Visitor method: enter all classes in given tree, catching any
      *  completion failure exceptions. Return the tree's type.
      *
-     *  @param tree    The tree to be visited.
+     *  @param tree    The tree to be visited.被访问的 tree
      *  @param env     The environment visitor argument.
      */
     Type classEnter(JCTree tree, Env<AttrContext> env) {
         Env<AttrContext> prevEnv = this.env;
         try {
             this.env = env;
-            tree.accept(this);
+            tree.accept(this); // 使用当前 Enter 访问当前 tree
             return result;
         }  catch (CompletionFailure ex) {
             return chk.completionError(tree.pos(), ex);
@@ -272,7 +272,7 @@ public class Enter extends JCTree.Visitor {
      */
     <T extends JCTree> List<Type> classEnter(List<T> trees, Env<AttrContext> env) {
         ListBuffer<Type> ts = new ListBuffer<Type>();
-        for (List<T> l = trees; l.nonEmpty(); l = l.tail) {
+        for (List<T> l = trees; l.nonEmpty(); l = l.tail) { // 遍历 所有 tree
             Type t = classEnter(l.head, env); // 处理trees列表中的每个元素
             if (t != null)
                 ts.append(t); // 将处理后的结果添加到ts列表中并返回
@@ -284,10 +284,10 @@ public class Enter extends JCTree.Visitor {
     public void visitTopLevel(JCCompilationUnit tree) { // 对编译单元进行处理
         JavaFileObject prev = log.useSource(tree.sourcefile);
         boolean addEnv = false;
-        boolean isPkgInfo = tree.sourcefile.isNameCompatible("package-info",
+            boolean isPkgInfo = tree.sourcefile.isNameCompatible("package-info",
                                                              JavaFileObject.Kind.SOURCE);
         if (tree.pid != null) {
-            tree.packge = reader.enterPackage(TreeInfo.fullName(tree.pid));
+            tree.packge = reader.enterPackage(TreeInfo.fullName(tree.pid)); // 创建 PackageSymbol
             if (tree.packageAnnotations.nonEmpty() || pkginfoOpt == PkgInfo.ALWAYS) {
                 if (isPkgInfo) {
                     addEnv = true;
@@ -333,7 +333,7 @@ public class Enter extends JCTree.Visitor {
             c.members_field = new Scope(c);
             tree.packge.package_info = c;
         }
-        classEnter(tree.defs, topEnv); // 遍历当前编译单元下的成员
+        classEnter(tree.defs, topEnv); // 遍历当前编译单元(Java文件)下的成员(Java文件下的类 等),会为每个成员生成 ClassSymbol 等
         if (addEnv) {
             todo.append(topEnv);
         }
@@ -342,11 +342,11 @@ public class Enter extends JCTree.Visitor {
     }
 
     @Override
-    public void visitClassDef(JCClassDecl tree) { // 为当前的类型生成对应的 ClassSymbol对象
+    public void visitClassDef(JCClassDecl tree) { // 为当前的类型生成对应的 ClassSymbol对象.然后将此对象标注到语法树上,同时也会填充到相关作用域的符号表内
         Symbol owner = env.info.scope.owner;
         Scope enclScope = enterScope(env);
         ClassSymbol c;
-        if (owner.kind == PCK) { // 处理顶层类
+        if (owner.kind == PCK) { // 处理顶层类,顶层类 owner 的 kind 是 包类型
             // We are seeing a toplevel class.
             PackageSymbol packge = (PackageSymbol)owner;
             for (Symbol q = packge; q != null && q.kind == PCK; q = q.owner)
@@ -416,15 +416,15 @@ public class Enter extends JCTree.Visitor {
             }
         }
 
-        // Enter type parameters.
+        // Enter type parameters.处理类型声明的 类型参数
         ct.typarams_field = classEnter(tree.typarams, localEnv);
 
         // Add non-local class to uncompleted, to make sure it will be
-        // completed later.
+        // completed later.将非本地类的ClassSymbol对象存储到uncompleted列表中,用于后续处理
         if (!c.isLocal() && uncompleted != null) uncompleted.append(c);
 //      System.err.println("entering " + c.fullname + " in " + c.owner);//DEBUG
 
-        // Recursively enter all member classes.
+        // Recursively enter all member classes.通过 tree.defs 递归完成符号输入
         classEnter(tree.defs, localEnv);
 
         result = c.type;
@@ -445,7 +445,7 @@ public class Enter extends JCTree.Visitor {
 
     /** Class enter visitor method for type parameters.
      *  Enter a symbol for type parameter in local scope, after checking that it
-     *  is unique.
+     *  is unique.对类声明的 类型变量 进行处理
      */
     @Override
     public void visitTypeParameter(JCTypeParameter tree) {
@@ -466,7 +466,7 @@ public class Enter extends JCTree.Visitor {
         result = null;
     }
 
-    /** Main method: enter all classes in a list of toplevel trees.
+    /** Main method: enter all classes in a list of toplevel trees.完成符号输入
      *  @param trees      The list of trees to be processed.
      */
     public void main(List<JCCompilationUnit> trees) {
@@ -474,7 +474,7 @@ public class Enter extends JCTree.Visitor {
     }
 
     /** Main method: enter one class from a list of toplevel trees and
-     *  place the rest on uncompleted for later processing.
+     *  place the rest on uncompleted for later processing. 遍历tree,返回 uncompleted 用于后续处理
      *  @param trees      The list of trees to be processed.
      *  @param c          The class symbol to be processed.
      */
@@ -485,14 +485,14 @@ public class Enter extends JCTree.Visitor {
 
         try {
             // enter all classes, and construct uncompleted list.输入所有类,构造未完成列表
-            classEnter(trees, null); // 完成类符号输入.将除本地类外的所有类对应的 ClassSymbol 对象 存储到 uncompleted 列表中
+            classEnter(trees, null); // 1.完成类符号输入.将除 本地类 外的 所有类对应的 ClassSymbol 对象 存储到 uncompleted 列表中
 
             // complete all uncompleted classes in memberEnter.完成所有未完成的类
             if  (memberEnter.completionEnabled) {
                 while (uncompleted.nonEmpty()) { // 循环 uncompleted 列表,调用 clazz.complete() 方法完成每个类中成员符号的填充
                     ClassSymbol clazz = uncompleted.next();
                     if (c == null || c == clazz || prevUncompleted == null)
-                        clazz.complete();
+                        clazz.complete(); // 调用 MemberEnter.complete() 填充成员符号
                     else
                         // defer
                         prevUncompleted.append(clazz);

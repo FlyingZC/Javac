@@ -12,7 +12,8 @@ public class T01Compiler {
 
         // String path = BASE_DIR + "/HelloWorld.java";
         // String path = BASE_DIR + "/z02tree/T01ClassType.java";
-        String path = BASE_DIR + "/z03symbol/TestOuterProperty.java";
+        // String path = BASE_DIR + "/z03symbol/TestOuterProperty.java";
+        String path = BASE_DIR + "/z03symbol/enter/TestOuterA.java";
 
         javax.tools.JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
         int result = compiler.run(null, null, null,

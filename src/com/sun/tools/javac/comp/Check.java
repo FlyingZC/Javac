@@ -188,7 +188,7 @@ public class Check {
     char syntheticNameChar;
 
     /** A table mapping flat names of all compiled classes in this run to their
-     *  symbols; maintained from outside.
+     *  symbols; maintained from outside.类的 flatname 到 ClassSymbol 对象的映射
      */
     public Map<Name,ClassSymbol> compiled = new HashMap<Name, ClassSymbol>();
 

@@ -431,7 +431,7 @@ public abstract class Symbol implements Element {
         if (completer != null) {
             Completer c = completer;
             completer = null;
-            c.complete(this);
+            c.complete(this); // 完成包下成员符号的填充
         }
     }
 
