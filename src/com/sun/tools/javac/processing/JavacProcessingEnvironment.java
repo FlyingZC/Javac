@@ -189,7 +189,7 @@ public class JavacProcessingEnvironment implements ProcessingEnvironment, Closea
         messager = new JavacMessager(context, this);
         elementUtils = JavacElements.instance(context);
         typeUtils = JavacTypes.instance(context);
-        processorOptions = initProcessorOptions(context);
+        processorOptions = initProcessorOptions(context); // 初始化注解处理器的参数
         unmatchedProcessorOptions = initUnmatchedProcessorOptions();
         messages = JavacMessages.instance(context);
         taskListener = MultiTaskListener.instance(context);
@@ -223,7 +223,7 @@ public class JavacProcessingEnvironment implements ProcessingEnvironment, Closea
 
             if (processorClassLoader != null && processorClassLoader instanceof Closeable) {
                 JavaCompiler compiler = JavaCompiler.instance(context);
-                compiler.closeables = compiler.closeables.prepend((Closeable) processorClassLoader);
+                compiler.closeables = compiler.closeables.prepend((Closeable) processorClassLoader); // 添加 classLoader
             }
         } catch (SecurityException e) {
             processorClassLoaderException = e;
@@ -232,7 +232,7 @@ public class JavacProcessingEnvironment implements ProcessingEnvironment, Closea
 
     private void initProcessorIterator(Context context, Iterable<? extends Processor> processors) {
         Log   log   = Log.instance(context);
-        Iterator<? extends Processor> processorIterator;
+        Iterator<? extends Processor> processorIterator; // 通过processorIterator迭代所有的注解处理器
 
         if (options.isSet(XPRINT)) {
             try {
@@ -247,7 +247,7 @@ public class JavacProcessingEnvironment implements ProcessingEnvironment, Closea
         } else if (processors != null) {
             processorIterator = processors.iterator();
         } else {
-            String processorNames = options.get(PROCESSOR);
+            String processorNames = options.get(PROCESSOR); // 从参数选项里获取 processName
             if (processorClassLoaderException == null) {
                 /*
                  * If the "-processor" option is used, search the appropriate
@@ -255,7 +255,7 @@ public class JavacProcessingEnvironment implements ProcessingEnvironment, Closea
                  * provider mechanism to create the processor iterator.
                  */
                 if (processorNames != null) {
-                    processorIterator = new NameProcessIterator(processorNames, processorClassLoader, log);
+                    processorIterator = new NameProcessIterator(processorNames, processorClassLoader, log); // 根据 processName等 创建 iterator
                 } else {
                     processorIterator = new ServiceIterator(processorClassLoader, log);
                 }
@@ -389,7 +389,7 @@ public class JavacProcessingEnvironment implements ProcessingEnvironment, Closea
         Log log;
 
         NameProcessIterator(String names, ClassLoader processorCL, Log log) {
-            this.names = Arrays.asList(names.split(",")).iterator();
+            this.names = Arrays.asList(names.split(",")).iterator(); // processor names 逗号分隔,放到 names 里
             this.processorCL = processorCL;
             this.log = log;
         }
@@ -401,13 +401,13 @@ public class JavacProcessingEnvironment implements ProcessingEnvironment, Closea
                 if (!names.hasNext())
                     return false;
                 else {
-                    String processorName = names.next();
+                    String processorName = names.next(); // 获取 processorName
 
                     Processor processor;
                     try {
                         try {
                             processor =
-                                (Processor) (processorCL.loadClass(processorName).newInstance());
+                                (Processor) (processorCL.loadClass(processorName).newInstance()); // 加载 processor
                         } catch (ClassNotFoundException cnfe) {
                             log.error("proc.processor.not.found", processorName);
                             return false;
@@ -498,17 +498,17 @@ public class JavacProcessingEnvironment implements ProcessingEnvironment, Closea
             contributed = false;
 
             try {
-                processor.init(env);
-
+                processor.init(env); // 处理注解处理器的初始化信息
+                // 处理注解处理器支持的Java源代码版本.检查注解处理器支持的Java源代码版本是否低于当前要编译的Java源代码版本，如果低于，将会给出警告
                 checkSourceVersionCompatibility(source, log);
-
+                // 处理注解处理器支持处理的注解类型
                 supportedAnnotationPatterns = new ArrayList<Pattern>();
                 for (String importString : processor.getSupportedAnnotationTypes()) {
                     supportedAnnotationPatterns.add(importStringToPattern(importString,
                                                                           processor,
                                                                           log));
                 }
-
+                // 处理注解处理器支持的注解选项
                 supportedOptionNames = new ArrayList<String>();
                 for (String optionName : processor.getSupportedOptions() ) {
                     if (checkOptionName(optionName, log))
@@ -614,7 +614,7 @@ public class JavacProcessingEnvironment implements ProcessingEnvironment, Closea
                 throw new UnsupportedOperationException();
             }
 
-            /**
+            /** 运行在procStateList中剩下的还没有运行过的注解处理器
              * Run all remaining processors on the procStateList that
              * have not already run this round with an empty set of
              * annotations.
@@ -659,17 +659,17 @@ public class JavacProcessingEnvironment implements ProcessingEnvironment, Closea
                                      List<ClassSymbol> topLevelClasses,
                                      List<PackageSymbol> packageInfoFiles) {
         Map<String, TypeElement> unmatchedAnnotations =
-            new HashMap<String, TypeElement>(annotationsPresent.size());
+            new HashMap<String, TypeElement>(annotationsPresent.size()); // 全限定名 -> 对应TypeElement对象 的映射
 
-        for(TypeElement a  : annotationsPresent) {
+        for(TypeElement a  : annotationsPresent) { // 遍历 annotationsPresent,填充map
                 unmatchedAnnotations.put(a.getQualifiedName().toString(),
                                          a);
         }
 
-        // Give "*" processors a chance to match
+        // Give "*" processors a chance to match 让处理"*"的注解处理器也有机会运行
         if (unmatchedAnnotations.size() == 0)
             unmatchedAnnotations.put("", null);
-
+        // 可通过迭代器获取所有的 注解处理器
         DiscoveredProcessors.ProcessorStateIterator psi = discoveredProcs.iterator();
         // TODO: Create proper argument values; need past round
         // information to fill in this constructor.  Note that the 1
@@ -681,29 +681,29 @@ public class JavacProcessingEnvironment implements ProcessingEnvironment, Closea
         rootElements.addAll(topLevelClasses);
         rootElements.addAll(packageInfoFiles);
         rootElements = Collections.unmodifiableSet(rootElements);
-
+        // 创建这一轮Round运行的环境
         RoundEnvironment renv = new JavacRoundEnvironment(false,
                                                           false,
                                                           rootElements,
                                                           JavacProcessingEnvironment.this);
-
+        // 当有待处理的注解并且有注解处理器的情况下,查找能处理注解的注解处理器并运行
         while(unmatchedAnnotations.size() > 0 && psi.hasNext() ) {
-            ProcessorState ps = psi.next();
+            ProcessorState ps = psi.next(); // 获取下一个处理器
             Set<String>  matchedNames = new HashSet<String>();
             Set<TypeElement> typeElements = new LinkedHashSet<TypeElement>();
-
+            // 查找注解处理器能够处理的注解并存储到matchedNames集合中
             for (Map.Entry<String, TypeElement> entry: unmatchedAnnotations.entrySet()) {
                 String unmatchedAnnotationName = entry.getKey();
-                if (ps.annotationSupported(unmatchedAnnotationName) ) {
+                if (ps.annotationSupported(unmatchedAnnotationName) ) { // 处理器能处理该注解
                     matchedNames.add(unmatchedAnnotationName);
                     TypeElement te = entry.getValue();
                     if (te != null)
                         typeElements.add(te);
                 }
             }
-
+            // 当注解处理器ps能够处理某些注解或者在之前的Round中运行过此注解处理器时,调用callProcessor()方法运行此注解处理器
             if (matchedNames.size() > 0 || ps.contributed) {
-                boolean processingResult = callProcessor(ps.processor, typeElements, renv);
+                boolean processingResult = callProcessor(ps.processor, typeElements, renv); // 调用 processor
                 ps.contributed = true;
                 ps.removeSupportedOptions(unmatchedProcessorOptions);
 
@@ -715,7 +715,7 @@ public class JavacProcessingEnvironment implements ProcessingEnvironment, Closea
                 }
 
                 if (processingResult) {
-                    unmatchedAnnotations.keySet().removeAll(matchedNames);
+                    unmatchedAnnotations.keySet().removeAll(matchedNames); // 处理完后从 unmatchedAnnotations 中移除
                 }
 
             }
@@ -731,7 +731,7 @@ public class JavacProcessingEnvironment implements ProcessingEnvironment, Closea
                             unmatchedAnnotations.keySet());
             }
         }
-
+        // 再次运行之前Round中运行过的注解处理器
         // Run contributing processors that haven't run yet
         psi.runContributingProcs(renv);
 
@@ -740,7 +740,7 @@ public class JavacProcessingEnvironment implements ProcessingEnvironment, Closea
             filer.displayState();
     }
 
-    /**
+    /** 对语法树进行扫描,找到使用到的注解类型.继承自 ElementScanner8,重写scan()
      * Computes the set of annotations on the symbol in question.
      * Leave class public for external testing purposes.
      */
@@ -764,7 +764,7 @@ public class JavacProcessingEnvironment implements ProcessingEnvironment, Closea
             for (AnnotationMirror annotationMirror :
                      elements.getAllAnnotationMirrors(e) ) {
                 Element e2 = annotationMirror.getAnnotationType().asElement();
-                p.add((TypeElement) e2);
+                p.add((TypeElement) e2); // 查找注解 添加到 annotationsPresent 即 p 中
             }
             return super.scan(e, p);
         }
@@ -791,7 +791,7 @@ public class JavacProcessingEnvironment implements ProcessingEnvironment, Closea
     }
 
     /**
-     * Helper object for a single round of annotation processing.
+     * Helper object for a single round of annotation processing.用于一轮处理注解
      */
     class Round {
         /** The round number. */
@@ -854,11 +854,11 @@ public class JavacProcessingEnvironment implements ProcessingEnvironment, Closea
             // The reverse() in the following line is to maintain behavioural
             // compatibility with the previous revision of the code. Strictly speaking,
             // it should not be necessary, but a javah golden file test fails without it.
-            topLevelClasses =
+            topLevelClasses = // 将roots列表中保存的所有编译单元下定义的顶层类追加到topLevelClasses列表中
                 getTopLevelClasses(roots).prependList(classSymbols.reverse());
 
             packageInfoFiles = getPackageInfoFiles(roots);
-
+            // 查找在topLevelClasses列表的顶层类中使用到的注解
             findAnnotationsPresent();
         }
 
@@ -957,12 +957,12 @@ public class JavacProcessingEnvironment implements ProcessingEnvironment, Closea
         /** Find the set of annotations present in the set of top level
          *  classes and package info files to be processed this round. */
         void findAnnotationsPresent() {
-            ComputeAnnotationSet annotationComputer = new ComputeAnnotationSet(elementUtils);
+            ComputeAnnotationSet annotationComputer = new ComputeAnnotationSet(elementUtils); // 对语法树进行扫描,找到注解
             // Use annotation processing to compute the set of annotations present
             annotationsPresent = new LinkedHashSet<TypeElement>();
-            for (ClassSymbol classSym : topLevelClasses)
-                annotationComputer.scan(classSym, annotationsPresent);
-            for (PackageSymbol pkgSym : packageInfoFiles)
+            for (ClassSymbol classSym : topLevelClasses) // 遍历顶层类 符号
+                annotationComputer.scan(classSym, annotationsPresent); // 扫描注解,保存到 annotationsPresent 里
+            for (PackageSymbol pkgSym : packageInfoFiles) // 遍历 packInfo 符号
                 annotationComputer.scan(pkgSym, annotationsPresent);
         }
 
@@ -1015,7 +1015,7 @@ public class JavacProcessingEnvironment implements ProcessingEnvironment, Closea
                             JavacProcessingEnvironment.this);
                     discoveredProcs.iterator().runContributingProcs(renv);
                 } else {
-                    discoverAndRunProcs(context, annotationsPresent, topLevelClasses, packageInfoFiles);
+                    discoverAndRunProcs(context, annotationsPresent, topLevelClasses, packageInfoFiles); // 根据使用到的注解类型 查找 可以处理这些注解类型的 注解处理器 并执行
                 }
             } finally {
                 if (!taskListener.isEmpty())
@@ -1142,27 +1142,27 @@ public class JavacProcessingEnvironment implements ProcessingEnvironment, Closea
         for (PackageSymbol psym : pckSymbols)
             specifiedPackages.add(psym);
         this.specifiedPackages = Collections.unmodifiableSet(specifiedPackages);
-
+        // 创建 round,会扫描注解
         Round round = new Round(context, roots, classSymbols, deferredDiagnosticHandler);
 
         boolean errorStatus;
         boolean moreToDo;
-        do {
-            // Run processors for round n
-            round.run(false, false);
+        do { // 每一次循环都会创建一个Round对象
+            // Run processors for round n 运行这一轮的注解处理器
+            round.run(false, false); // 允许注解处理器
 
             // Processors for round n have run to completion.
-            // Check for errors and whether there is more work to do.
+            // Check for errors and whether there is more work to do.当运行完这一轮注解处理器时，如果没有发现错误并且又有新的文件.生成时，需要进行下一轮注解处理器
             errorStatus = round.unrecoverableError();
-            moreToDo = moreToDo();
+            moreToDo = moreToDo(); // 有新的文件产生,则返回true
 
             round.showDiagnostics(errorStatus || showResolveErrors);
 
             // Set up next round.
-            // Copy mutable collections returned from filer.
+            // Copy mutable collections returned from filer.调用round.next()方法创建新的Round对象
             round = round.next(
                     new LinkedHashSet<JavaFileObject>(filer.getGeneratedSourceFileObjects()),
-                    new LinkedHashMap<String,JavaFileObject>(filer.getGeneratedClasses()));
+                    new LinkedHashMap<String,JavaFileObject>(filer.getGeneratedClasses())); // 将保存了新产生的文件的集合传递给新的Round对象
 
              // Check for errors during setup.
             if (round.unrecoverableError())
@@ -1170,7 +1170,7 @@ public class JavacProcessingEnvironment implements ProcessingEnvironment, Closea
 
         } while (moreToDo && !errorStatus);
 
-        // run last round
+        // run last round 运行最后一轮注解处理器
         round.run(true, errorStatus);
         round.showDiagnostics(true);
 
@@ -1239,11 +1239,11 @@ public class JavacProcessingEnvironment implements ProcessingEnvironment, Closea
     private List<ClassSymbol> getTopLevelClasses(List<? extends JCCompilationUnit> units) {
         List<ClassSymbol> classes = List.nil();
         for (JCCompilationUnit unit : units) {
-            for (JCTree node : unit.defs) {
+            for (JCTree node : unit.defs) { // 遍历 编译单元 里的 顶级类
                 if (node.hasTag(JCTree.Tag.CLASSDEF)) {
                     ClassSymbol sym = ((JCClassDecl) node).sym;
                     Assert.checkNonNull(sym);
-                    classes = classes.prepend(sym);
+                    classes = classes.prepend(sym); // 添加symbol到classes里
                 }
             }
         }

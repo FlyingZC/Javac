@@ -1200,7 +1200,7 @@ public class MemberEnter extends JCTree.Visitor implements Completer {
         }
     }
 
-
+    // 处理类型定义中继承的父类、实现的接口、类型上的注解及类上声明的类型变量使用的环境
     private Env<AttrContext> baseEnv(JCClassDecl tree, Env<AttrContext> env) {
         Scope baseScope = new Scope(tree.sym);
         //import already entered local classes into base scope

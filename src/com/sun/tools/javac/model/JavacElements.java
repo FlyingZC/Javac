@@ -631,7 +631,7 @@ public class JavacElements implements Elements {
             }
         }
 
-    /**
+    /** 返回所有注解,包括继承的
      * Returns all annotations of an element, whether
      * inherited or directly present.
      *
@@ -639,10 +639,10 @@ public class JavacElements implements Elements {
      * @return all annotations of the element
      */
     public List<Attribute.Compound> getAllAnnotationMirrors(Element e) {
-        Symbol sym = cast(Symbol.class, e);
+        Symbol sym = cast(Symbol.class, e); // 将 element 转成 Symbol 类型
         List<Attribute.Compound> annos = sym.getRawAttributes();
         while (sym.getKind() == ElementKind.CLASS) {
-            Type sup = ((ClassSymbol) sym).getSuperclass();
+            Type sup = ((ClassSymbol) sym).getSuperclass(); // 获取当前类符号的 父类
             if (!sup.hasTag(CLASS) || sup.isErroneous() ||
                     sup.tsym == syms.objectType.tsym) {
                 break;

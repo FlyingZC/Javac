@@ -1103,14 +1103,14 @@ public class Type implements PrimitiveType {
          *  The class type then has as `tsym' a compiler generated class `c',
          *  which has a flag COMPOUND and whose owner is the type variable
          *  itself. Furthermore, the erasure_field of the class
-         *  points to the first class or interface bound.
+         *  points to the first class or interface bound. 保存上界
          */
         public Type bound = null;
 
         /** The lower bound of this type variable.
          *  TypeVars don't normally have a lower bound, so it is normally set
          *  to syms.botType.
-         *  Subtypes, such as CapturedType, may provide a different value.
+         *  Subtypes, such as CapturedType, may provide a different value. 保存下界
          */
         public Type lower;
 
@@ -1163,7 +1163,7 @@ public class Type implements PrimitiveType {
      *  a lower bound.
      */
     public static class CapturedType extends TypeVar {
-
+        // wildcard保存了需要捕获的通配符类型
         public WildcardType wildcard;
 
         public CapturedType(Name name,

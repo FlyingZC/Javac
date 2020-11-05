@@ -1971,7 +1971,7 @@ public class Types {
         return isAssignable(t, s, noWarnings);
     }
 
-    /**
+    /** 判断 t 能赋值个 s 吗
      * Is t assignable to s?<br>
      * Equivalent to subtype except for constant values and raw
      * types.<br>
@@ -1980,7 +1980,7 @@ public class Types {
     public boolean isAssignable(Type t, Type s, Warner warn) {
         if (t.tag == ERROR)
             return true;
-        if (t.tag.isSubRangeOf(INT) && t.constValue() != null) {
+        if (t.tag.isSubRangeOf(INT) && t.constValue() != null) {  // 对整数类型的编译常量进行处理.先处理成INT,再处理成BYTE等
             int value = ((Number)t.constValue()).intValue();
             switch (s.tag) {
             case BYTE:
@@ -3464,13 +3464,13 @@ public class Types {
         }
         return t1;
     }
-    //where
+    //where 求两个类型的最大下界
     public Type glb(Type t, Type s) {
         if (s == null)
             return t;
         else if (t.isPrimitive() || s.isPrimitive())
             return syms.errType;
-        else if (isSubtypeNoCapture(t, s))
+        else if (isSubtypeNoCapture(t, s)) // 如果t和s有父子关系,则返回子类即可
             return t;
         else if (isSubtypeNoCapture(s, t))
             return s;
@@ -3724,13 +3724,13 @@ public class Types {
         }
         t = t.unannotatedType();
         ClassType cls = (ClassType)t;
-        if (cls.isRaw() || !cls.isParameterized())
+        if (cls.isRaw() || !cls.isParameterized()) // 只针对 参数化类型 进行捕获，如果cls为 裸类型 或不是 参数化类型 时，则直接返回
             return cls;
-
-        ClassType G = (ClassType)cls.asElement().asType();
-        List<Type> A = G.getTypeArguments();
-        List<Type> T = cls.getTypeArguments();
-        List<Type> S = freshTypeVariables(T);
+        // G: com.sun.tools.javac.zc.z05.T01Converter.TestClass<T>
+        ClassType G = (ClassType)cls.asElement().asType(); // cls: com.sun.tools.javac.zc.z05.T01Converter.TestClass<java.lang.String>
+        List<Type> A = G.getTypeArguments(); // 形式类型参数的 类型列表 T
+        List<Type> T = cls.getTypeArguments(); // 通过cls获取 实际类型参数的 类型列表 java.lang.String
+        List<Type> S = freshTypeVariables(T); // 经过捕获转换后的 类型列表 java.lang.String
 
         List<Type> currentA = A;
         List<Type> currentT = T;
@@ -3747,16 +3747,16 @@ public class Types {
                 if (Ui == null)
                     Ui = syms.objectType;
                 switch (Ti.kind) {
-                case UNBOUND:
-                    Si.bound = subst(Ui, A, S);
+                case UNBOUND: // 当实际类型参数为无界通配符时，需要计算捕获类型 的上界与下界
+                    Si.bound = subst(Ui, A, S); // 无界通配符：Si的上界为形式类型参数中声明的上界，当计算Si的上界时则调用了Types类的subst()方法将上界中含有的类型变量全部替换为捕获类型Si。而下界为null，表示无下界。
                     Si.lower = syms.botType;
                     break;
-                case EXTENDS:
-                    Si.bound = glb(Ti.getExtendsBound(), subst(Ui, A, S));
-                    Si.lower = syms.botType;
+                case EXTENDS: // 当实际类型参数为上界通配符时，需要计算捕获类型 的上界与下界
+                    Si.bound = glb(Ti.getExtendsBound(), subst(Ui, A, S)); // glb() 求两个类型的最大下界
+                    Si.lower = syms.botType; // 上界通配符：调用glb()方法计算两个上界类型的最大下界并作为Si的上界，而下界为null，表示无下界。
                     break;
-                case SUPER:
-                    Si.bound = subst(Ui, A, S);
+                case SUPER: // 当实际类型参数为下界通配符时，需要计算捕获类型 的上界与下界
+                    Si.bound = subst(Ui, A, S); // 下界通配符：上界为类型中声明类型参数时的上界，而下界就是实际传递的类型参数的下界，也就是下界通配符的下界。
                     Si.lower = Ti.getSuperBound();
                     break;
                 }
@@ -3779,15 +3779,15 @@ public class Types {
         public List<Type> freshTypeVariables(List<Type> types) {
             ListBuffer<Type> result = lb();
             for (Type t : types) {
-                if (t.tag == WILDCARD) {
-                    Type bound = ((WildcardType)t).getExtendsBound();
+                if (t.tag == WILDCARD) { // 当t为 ?通配符类型时,需要进行捕获转换
+                    Type bound = ((WildcardType)t).getExtendsBound(); // 获取上界
                     if (bound == null)
                         bound = syms.objectType;
                     result.append(new CapturedType(capturedName,
                                                    syms.noSymbol,
                                                    bound,
                                                    syms.botType,
-                                                   (WildcardType)t));
+                                                   (WildcardType)t)); // 将每个WildcardType对象封装为CapturedType对象并按顺序保存到result中
                 } else {
                     result.append(t);
                 }
