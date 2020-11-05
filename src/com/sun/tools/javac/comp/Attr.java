@@ -626,7 +626,7 @@ public class Attr extends JCTree.Visitor {
         return attribTree(tree, env, unknownExprInfo);
     }
 
-    /** Derived visitor method: attribute a type tree.
+    /** Derived visitor method: attribute a type tree.将查找到的类型保存到tree.type变量上
      */
     public Type attribType(JCTree tree, Env<AttrContext> env) {
         Type result = attribType(tree, env, Type.noType);
@@ -789,12 +789,12 @@ public class Attr extends JCTree.Visitor {
      */
     Type attribBase(JCTree tree,
                     Env<AttrContext> env,
-                    boolean classExpected,
-                    boolean interfaceExpected,
+                    boolean classExpected, // 期望t类型是一个类
+                    boolean interfaceExpected, // 期望t类型是一个借口
                     boolean checkExtensible) {
         Type t = tree.type != null ?
             tree.type :
-            attribType(tree, env);
+            attribType(tree, env); // t表示要检查的类型,比如当前类的 父类,接口等
         return checkBase(t, tree, env, classExpected, interfaceExpected, checkExtensible);
     }
     Type checkBase(Type t,
@@ -812,21 +812,21 @@ public class Attr extends JCTree.Visitor {
                 return types.createErrorType(t);
             }
         } else {
-            t = chk.checkClassType(tree.pos(), t, checkExtensible|!allowGenerics);
+            t = chk.checkClassType(tree.pos(), t, checkExtensible|!allowGenerics); // 检查接口 或 类 的实际类型参数 不允许含有通配符类型
         }
-        if (interfaceExpected && (t.tsym.flags() & INTERFACE) == 0) {
+        if (interfaceExpected && (t.tsym.flags() & INTERFACE) == 0) { // 检查t必须是接口
             log.error(tree.pos(), "intf.expected.here");
             // return errType is necessary since otherwise there might
             // be undetected cycles which cause attribution to loop
             return types.createErrorType(t);
         } else if (checkExtensible &&
                    classExpected &&
-                   (t.tsym.flags() & INTERFACE) != 0) {
+                   (t.tsym.flags() & INTERFACE) != 0) { // 检查t必须为类
                 log.error(tree.pos(), "no.intf.expected.here");
             return types.createErrorType(t);
         }
         if (checkExtensible &&
-            ((t.tsym.flags() & FINAL) != 0)) {
+            ((t.tsym.flags() & FINAL) != 0)) { // 父类或接口不能有final修饰
             log.error(tree.pos(),
                       "cant.inherit.from.final", t.tsym);
         }

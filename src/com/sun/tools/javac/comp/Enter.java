@@ -145,7 +145,7 @@ public class Enter extends JCTree.Visitor {
     }
 
     /** A hashtable mapping classes and packages to the environments current
-     *  at the points of their definitions.
+     *  at the points of their definitions. typeSymbol->env的映射
      */
     Map<TypeSymbol,Env<AttrContext>> typeEnvs =
             new HashMap<TypeSymbol,Env<AttrContext>>();
@@ -380,7 +380,7 @@ public class Enter extends JCTree.Visitor {
         tree.sym = c;
 
         // Enter class into `compiled' table and enclosing scope.
-        if (chk.compiled.get(c.flatname) != null) {
+        if (chk.compiled.get(c.flatname) != null) { // 如果当前类的flatname和已有的flatname重复
             duplicateClass(tree.pos(), c);
             result = types.createErrorType(tree.name, (TypeSymbol)owner, Type.noType);
             tree.sym = (ClassSymbol)result.tsym;

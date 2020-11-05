@@ -934,11 +934,11 @@ public class MemberEnter extends JCTree.Visitor implements Completer {
 
             // Determine supertype.
             Type supertype =
-                (tree.extending != null)
-                ? attr.attribBase(tree.extending, baseEnv, true, false, true)
-                : ((tree.mods.flags & Flags.ENUM) != 0 && !target.compilerBootstrap(c))
+                (tree.extending != null) // Java源文件中继承了父类
+                ? attr.attribBase(tree.extending, baseEnv, true, false, true) // 期待继承的是类,此处不检查接口
+                : ((tree.mods.flags & Flags.ENUM) != 0 && !target.compilerBootstrap(c)) // extending为空,再判断是否是枚举类
                 ? attr.attribBase(enumBase(tree.pos, c), baseEnv,
-                                  true, false, false)
+                                  true, false, false) // 若是枚举类,调用enumBase()为枚举类添加一个父类.如枚举类 A,父类为 Enum<A>
                 : (c.fullname == names.java_lang_Object)
                 ? Type.noType
                 : syms.objectType;
@@ -1203,13 +1203,13 @@ public class MemberEnter extends JCTree.Visitor implements Completer {
     // 处理类型定义中继承的父类、实现的接口、类型上的注解及类上声明的类型变量使用的环境
     private Env<AttrContext> baseEnv(JCClassDecl tree, Env<AttrContext> env) {
         Scope baseScope = new Scope(tree.sym);
-        //import already entered local classes into base scope
+        //import already entered local classes into base scope 将env.outer.info.scope作用域下的本地类存到baseScope中
         for (Scope.Entry e = env.outer.info.scope.elems ; e != null ; e = e.sibling) {
-            if (e.sym.isLocal()) {
-                baseScope.enter(e.sym);
+            if (e.sym.isLocal()) { // 本地类
+                baseScope.enter(e.sym); // 存入baseScope
             }
         }
-        //import current type-parameters into base scope
+        //import current type-parameters into base scope 将形式类型参数存到baseScope中
         if (tree.typarams != null)
             for (List<JCTypeParameter> typarams = tree.typarams;
                  typarams.nonEmpty();

@@ -188,7 +188,7 @@ public class Check {
     char syntheticNameChar;
 
     /** A table mapping flat names of all compiled classes in this run to their
-     *  symbols; maintained from outside.类的 flatname 到 ClassSymbol 对象的映射
+     *  symbols; maintained from outside.将所有已编译的类的 flatname 到 ClassSymbol 对象的映射
      */
     public Map<Name,ClassSymbol> compiled = new HashMap<Name, ClassSymbol>();
 
@@ -390,19 +390,19 @@ public class Check {
 
     /** Check that class does not have the same name as one of
      *  its enclosing classes, or as a class defined in its enclosing scope.
-     *  return true if class is unique in its enclosing scope.
+     *  return true if class is unique in its enclosing scope.对除 匿名类 与 顶层类 外的所有类进行唯一性检查
      *  @param pos           Position for error reporting.
      *  @param name          The class name.
      *  @param s             The enclosing scope.
      */
     boolean checkUniqueClassName(DiagnosticPosition pos, Name name, Scope s) {
-        for (Scope.Entry e = s.lookup(name); e.scope == s; e = e.next()) {
+        for (Scope.Entry e = s.lookup(name); e.scope == s; e = e.next()) { // 检查相同作用域内的类型
             if (e.sym.kind == TYP && e.sym.name != names.error) {
                 duplicateError(pos, e.sym);
                 return false;
             }
         }
-        for (Symbol sym = s.owner; sym != null; sym = sym.owner) {
+        for (Symbol sym = s.owner; sym != null; sym = sym.owner) { // 检查封闭类型
             if (sym.kind == TYP && sym.name == name && sym.name != names.error) {
                 duplicateError(pos, sym);
                 return true;
@@ -644,12 +644,12 @@ public class Check {
         }
     }
 
-    /** Check that type is a class or interface type.
+    /** Check that type is a class or interface type. 检查类型是 类 或 接口
      *  @param pos           Position to be used for error reporting.
      *  @param t             The type to be checked.
      */
     Type checkClassType(DiagnosticPosition pos, Type t) {
-        if (!t.hasTag(CLASS) && !t.hasTag(ERROR)) {
+        if (!t.hasTag(CLASS) && !t.hasTag(ERROR)) { // 判断tag是 CLASS 即可
             return typeTagError(pos,
                                 diags.fragment("type.req.class"),
                                 asTypeParam(t));
@@ -686,11 +686,11 @@ public class Check {
      *  @param noBounds    True if type bounds are illegal here.
      */
     Type checkClassType(DiagnosticPosition pos, Type t, boolean noBounds) {
-        t = checkClassType(pos, t);
-        if (noBounds && t.isParameterized()) {
+        t = checkClassType(pos, t); // 检查t类型为接口或类
+        if (noBounds && t.isParameterized()) { // 当noBounds为true且t为参数化类型时,检查实际的类型参数的类型不能为通配符类型
             List<Type> args = t.getTypeArguments();
             while (args.nonEmpty()) {
-                if (args.head.hasTag(WILDCARD))
+                if (args.head.hasTag(WILDCARD)) // 含有通配符,报错
                     return typeTagError(pos,
                                         diags.fragment("type.req.exact"),
                                         args.head);
@@ -2281,7 +2281,7 @@ public class Check {
         }
 
     /** Check that all abstract methods implemented by a class are
-     *  mutually compatible.
+     *  mutually compatible.检查类实现的所有抽象方法是否相互兼容
      *  @param pos          Position to be used for error reporting.
      *  @param c            The class whose interfaces are checked.
      */
@@ -2289,9 +2289,9 @@ public class Check {
         List<Type> supertypes = types.interfaces(c);
         Type supertype = types.supertype(c);
         if (supertype.hasTag(CLASS) &&
-            (supertype.tsym.flags() & ABSTRACT) != 0)
+            (supertype.tsym.flags() & ABSTRACT) != 0)  // 如果父类为抽象类,将父类追加到supertypes列表的头部
             supertypes = supertypes.prepend(supertype);
-        for (List<Type> l = supertypes; l.nonEmpty(); l = l.tail) {
+        for (List<Type> l = supertypes; l.nonEmpty(); l = l.tail) { // 对父类或接口中的方法两两进行兼容性检查
             if (allowGenerics && !l.head.getTypeArguments().isEmpty() &&
                 !checkCompatibleAbstracts(pos, l.head, l.head, c))
                 return;
