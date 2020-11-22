@@ -25,7 +25,7 @@
 
 package com.sun.tools.javac.util;
 
-/**
+/** Javac将Java源代码中用到的字符串封装为Name对象. Names用于保存Name
  * Access to the compiler's name table.  STandard names are defined,
  * as well as methods to create new names.
  *
@@ -174,13 +174,13 @@ public class Names {
     //lambda-related
     public final Name lambda;
     public final Name metaFactory;
-
+    // 用于保存Name的table
     public final Name.Table table;
 
     public Names(Context context) {
         Options options = Options.instance(context);
         table = createTable(options);
-
+        // 创建各种Name,复用
         // operators and punctuation
         asterisk = fromString("*");
         comma = fromString(",");

@@ -42,7 +42,7 @@ import static com.sun.tools.javac.code.Kinds.*;
 import static com.sun.tools.javac.code.TypeTag.*;
 
 /** This class represents Java types. The class itself defines the behavior of
- *  the following types:
+ *  the following types: 这个类表示Java类型
  *  <pre>
  *  base types (tags: BYTE, CHAR, SHORT, INT, LONG, FLOAT, DOUBLE, BOOLEAN),
  *  type `void' (tag: VOID),
@@ -82,7 +82,7 @@ public class Type implements PrimitiveType {
      */
     public static boolean moreInfo = false;
 
-    /** The tag of this type.
+    /** The tag of this type.用于表示具体的类型
      *
      *  @see TypeTag
      */
@@ -1068,7 +1068,7 @@ public class Type implements PrimitiveType {
             return v.visitExecutable(this, p);
         }
     }
-
+    /**包类型*/
     public static class PackageType extends Type implements NoType {
 
         PackageType(TypeSymbol tsym) {

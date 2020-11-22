@@ -342,7 +342,7 @@ public class Enter extends JCTree.Visitor {
     }
 
     @Override
-    public void visitClassDef(JCClassDecl tree) { // 为当前的类型生成对应的 ClassSymbol对象.然后将此对象标注到语法树上,同时也会填充到相关作用域的符号表内
+    public void visitClassDef(JCClassDecl tree) { // 访问类定义. 为当前的类型生成对应的 ClassSymbol对象.然后将此对象标注到语法树上,同时也会填充到相关作用域的符号表内
         Symbol owner = env.info.scope.owner;
         Scope enclScope = enterScope(env);
         ClassSymbol c;

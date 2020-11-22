@@ -39,7 +39,7 @@ import com.sun.tools.javac.util.*;
  *  <p><b>This is NOT part of any supported API.
  *  If you write code that depends on this, you do so at your own risk.
  *  This code and its internal interfaces are subject to change or
- *  deletion without notice.</b>
+ *  deletion without notice.</b> scope(作用域,比如以{}包围的就是一个作用域)是symbol的容器,类似map,下一个节点指向它的外层嵌套的作用域.相同作用域内的符号都会存放到同一个Scope对象下
  */
 public class Scope {
 
@@ -47,15 +47,15 @@ public class Scope {
      */
     private int shared;
 
-    /** Next enclosing scope (with whom this scope may share a hashtable)
+    /** Next enclosing scope (with whom this scope may share a hashtable) 外层嵌套的作用域
      */
     public Scope next;
 
-    /** The scope's owner.
+    /** The scope's owner.作用域的owner
      */
     public Symbol owner;
 
-    /** A hash table for the scope's entries.
+    /** A hash table for the scope's entries. 存储作用域内定义的符号,Entry是对Symbol的封装.同一个作用域内定义的所有符号会形成单链表
      */
     Entry[] table;
 
@@ -64,12 +64,12 @@ public class Scope {
     int hashMask;
 
     /** A linear list that also contains all entries in
-     *  reverse order of appearance (i.e later entries are pushed on top).
+     *  reverse order of appearance (i.e later entries are pushed on top).保存table单链表的首个Entry对象
      */
     public Entry elems;
 
     /** The number of elements in this scope.
-     * This includes deleted elements, whose value is the sentinel.
+     * This includes deleted elements, whose value is the sentinel.保存table单链表中Entry的总数
      */
     int nelems = 0;
 
@@ -214,7 +214,7 @@ public class Scope {
         int hash = getIndex(sym.name);
         Entry old = table[hash];
         if (old == null) {
-            old = sentinel;
+            old = sentinel; // 创建空的 Entry
             nelems++;
         }
         Entry e = makeEntry(sym, old, elems, s, origin);
@@ -228,7 +228,7 @@ public class Scope {
     }
 
     Entry makeEntry(Symbol sym, Entry shadowed, Entry sibling, Scope scope, Scope origin) {
-        return new Entry(sym, shadowed, sibling, scope);
+        return new Entry(sym, shadowed, sibling, scope); // 根据 symbol 创建 Entry
     }
 
 
@@ -311,13 +311,13 @@ public class Scope {
      *  this scope and proceeding outwards. If no entry was found,
      *  return the sentinel, which is characterized by having a null in
      *  both its scope and sym fields, whereas both fields are non-null
-     *  for regular entries.
+     *  for regular entries. 根据name从table中获取保存symbol的entry对象
      */
     public Entry lookup(Name name) {
         return lookup(name, noFilter);
     }
     public Entry lookup(Name name, Filter<Symbol> sf) {
-        Entry e = table[getIndex(name)];
+        Entry e = table[getIndex(name)]; // 根据name从table中获取 保存Scope的Entry对象
         if (e == null || e == sentinel)
             return sentinel;
         while (e.scope != null && (e.sym.name != name || !sf.accepts(e.sym)))
@@ -336,7 +336,7 @@ public class Scope {
         }
     }*/
 
-    /** Look for slot in the table.
+    /** Look for slot in the table.从table获取Entry(保存symbol)的index
      *  We use open addressing with double hashing.
      */
     int getIndex (Name name) {
@@ -451,11 +451,11 @@ public class Scope {
         return result.toString();
     }
 
-    /** A class for scope entries.
+    /** A class for scope entries.保存scope下的symbol
      */
     public static class Entry {
 
-        /** The referenced symbol.
+        /** The referenced symbol.符号
          *  sym == null   iff   this == sentinel
          */
         public Symbol sym;
@@ -464,11 +464,11 @@ public class Scope {
          */
         private Entry shadowed;
 
-        /** Next entry in same scope.
+        /** Next entry in same scope.指向下一个Entry节点
          */
         public Entry sibling;
 
-        /** The entry's scope.
+        /** The entry's scope.符号所属的作用域
          *  scope == null   iff   this == sentinel
          *  for an entry in an import scope, this is the scope
          *  where the entry came from (i.e. was imported from).

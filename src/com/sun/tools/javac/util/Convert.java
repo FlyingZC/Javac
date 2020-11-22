@@ -297,7 +297,7 @@ public class Convert {
     }
 
     /** Return the package name of a class name, excluding the trailing '.',
-     *  "" if not existent.获取全类名中的包名
+     *  "" if not existent.截取包名到最后一个.,比如 com.sun.tools.javac.zc 截取后返回 com.sun.tools.javac
      */
     public static Name packagePart(Name classname) {
         return classname.subName(0, classname.lastIndexOf((byte)'.'));

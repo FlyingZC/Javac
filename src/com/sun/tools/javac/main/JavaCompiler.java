@@ -336,7 +336,7 @@ public class JavaCompiler implements ClassReader.SourceCompleter {
         if (context.get(JavaFileManager.class) == null)
             JavacFileManager.preRegister(context);
 
-        names = Names.instance(context);
+        names = Names.instance(context); // 创建Names,用于保存Name
         log = Log.instance(context);
         diagFactory = JCDiagnostic.Factory.instance(context);
         reader = ClassReader.instance(context);
@@ -621,8 +621,8 @@ public class JavaCompiler implements ClassReader.SourceCompleter {
     protected JCCompilationUnit parse(JavaFileObject filename, CharSequence content) {
         long msec = now();
         JCCompilationUnit tree = make.TopLevel(List.<JCTree.JCAnnotation>nil(),
-                                      null, List.<JCTree>nil());
-        if (content != null) {
+                                      null, List.<JCTree>nil()); // 创建 JCCompilationUnit
+        if (content != null) { // 文件内容不为空
             if (verbose) {
                 log.printVerbose("parsing.started", filename);
             }
@@ -670,7 +670,7 @@ public class JavaCompiler implements ClassReader.SourceCompleter {
     public JCTree.JCCompilationUnit parse(JavaFileObject filename) {
         JavaFileObject prev = log.useSource(filename);
         try {
-            JCTree.JCCompilationUnit t = parse(filename, readSource(filename));
+            JCTree.JCCompilationUnit t = parse(filename, readSource(filename)); // 解析单个Java文件
             if (t.endPositions != null)
                 log.setEndPosTable(filename, t.endPositions);
             return t;
@@ -949,13 +949,13 @@ public class JavaCompiler implements ClassReader.SourceCompleter {
        if (shouldStop(CompileState.PARSE))
            return List.nil();
 
-        //parse all files
+        //parse all files.解析所有Java源文件,保存到 编译单元 列表 里
         ListBuffer<JCCompilationUnit> trees = lb();
         Set<JavaFileObject> filesSoFar = new HashSet<JavaFileObject>();
         for (JavaFileObject fileObject : fileObjects) { // 遍历每个Java文件
             if (!filesSoFar.contains(fileObject)) {
                 filesSoFar.add(fileObject);
-                trees.append(parse(fileObject));
+                trees.append(parse(fileObject)); // 解析单个Java文件成编译单元,添加到trees里
             }
         }
         return trees.toList();

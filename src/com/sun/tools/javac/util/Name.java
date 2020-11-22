@@ -27,7 +27,7 @@ package com.sun.tools.javac.util;
 
 /** An abstraction for internal compiler strings. They are stored in
  *  Utf8 format. Names are stored in a Name.Table, and are unique within
- *  that table.
+ *  that table.Javac将Java源代码中用到的字符串封装为Name对象.如标识符号、保留关键字等,且相同的字符串用同一个Name对象表示
  *
  *  <p><b>This is NOT part of any supported API.
  *  If you write code that depends on this, you do so at your own risk.
@@ -183,7 +183,7 @@ public abstract class Name implements javax.lang.model.element.Name {
      */
     public abstract int getByteOffset();
 
-    /** An abstraction for the hash table used to create unique Name instances.
+    /** An abstraction for the hash table used to create unique Name instances.保存Name的table
      */
     public static abstract class Table {
         /** Standard name table.
@@ -198,7 +198,7 @@ public abstract class Name implements javax.lang.model.element.Name {
          */
         public abstract Name fromChars(char[] cs, int start, int len);
 
-        /** Get the name for the characters in string s.
+        /** Get the name for the characters in string s. 字符串 -> Name对象,存入Table
          */
         public Name fromString(String s) {
             char[] cs = s.toCharArray(); // 字符串转 字节数组

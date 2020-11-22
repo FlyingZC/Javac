@@ -146,7 +146,7 @@ public class SharedNameTable extends Name.Table {
     public void dispose() {
         dispose(this);
     }
-
+    // name实现类.在Token类中定义的所有Token对象中,除去没有name的Token对象,每个Token对象的name都可以用一个NameImpl对象来表示
     static class NameImpl extends Name {
         /** The next name occupying the same hash bucket.
          */

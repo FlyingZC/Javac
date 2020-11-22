@@ -49,7 +49,7 @@ public class Kinds {
 
     private Kinds() {} // uninstantiable
 
-    /** The empty set of kinds.
+    /** The empty set of kinds.表示在语句及表达式的分析过程中,没有期望的符号
      */
     public final static int NIL = 0;
 

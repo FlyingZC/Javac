@@ -66,7 +66,7 @@ import static com.sun.tools.javac.main.Option.*;
  *  ClassSymbol which contains in its scope symbol representations
  *  for all other definitions in the classfile. Top-level Classes themselves
  *  appear as members of the scopes of PackageSymbols.
- *
+ *  源文件->symbol
  *  <p><b>This is NOT part of any supported API.
  *  If you write code that depends on this, you do so at your own risk.
  *  This code and its internal interfaces are subject to change or
@@ -2300,7 +2300,7 @@ public class ClassReader implements Completer {
  * Loading Classes
  ***********************************************************************/
 
-    /** Define a new class given its name and owner. 创建 ClassSymbol
+    /** Define a new class given its name and owner. 根据 name 和 owner 创建 ClassSymbol
      */
     public ClassSymbol defineClass(Name name, Symbol owner) {
         ClassSymbol c = new ClassSymbol(0, name, owner);
@@ -2314,11 +2314,11 @@ public class ClassReader implements Completer {
      *  and owner and enter in `classes' unless already there.查询name对应的ClassSymbol
      */
     public ClassSymbol enterClass(Name name, TypeSymbol owner) {
-        Name flatname = TypeSymbol.formFlatName(name, owner);
+        Name flatname = TypeSymbol.formFlatName(name, owner); // owner:name所属的符号. 获取全限定名,如 com.sun.tools.javac.zc.HelloWorld
         ClassSymbol c = classes.get(flatname); // 根据 flatName 先从 classes 缓存中获取 ClassSymbol
         if (c == null) { // 获取不到 ClassSymbol 则 创建 并 缓存
             c = defineClass(name, owner); // 根据 name 和 owner,创建 ClassSymbol
-            classes.put(flatname, c); // 缓存到 classes
+            classes.put(flatname, c); // 缓存 classSymbol 到 classes
         } else if ((c.name != name || c.owner != owner) && owner.kind == TYP && c.owner.kind == PCK) {
             // reassign fields of classes that might have been loaded with
             // their flat names.
@@ -2596,7 +2596,7 @@ public class ClassReader implements Completer {
             Assert.check(!fullname.isEmpty(), "rootPackage missing!");
             p = new PackageSymbol(
                 Convert.shortName(fullname),
-                enterPackage(Convert.packagePart(fullname)));
+                enterPackage(Convert.packagePart(fullname))); // 截取包名,递归调用该方法,知道最后fullname=""出口
             p.completer = this; // completer变量赋值为当前的ClassReader对象
             packages.put(fullname, p);
         }
@@ -2624,10 +2624,10 @@ public class ClassReader implements Completer {
             seen = CLASS_SEEN;
         else
             seen = SOURCE_SEEN;
-        String binaryName = fileManager.inferBinaryName(currentLoc, file); // 获取文件二进制名称
+        String binaryName = fileManager.inferBinaryName(currentLoc, file); // 获取文件二进制名称,如 com.sun.tools.javac.zc.HelloWorld
         int lastDot = binaryName.lastIndexOf(".");
-        Name classname = names.fromString(binaryName.substring(lastDot + 1)); // 获取文件 simpleClassName
-        boolean isPkgInfo = classname == names.package_info;
+        Name classname = names.fromString(binaryName.substring(lastDot + 1)); // 获取文件 simpleClassName.如 HelloWorld
+        boolean isPkgInfo = classname == names.package_info; // 是否是 package-info 文件
         ClassSymbol c = isPkgInfo
             ? p.package_info
             : (ClassSymbol) p.members_field.lookup(classname).sym; // 在 p.members_field 缓存中查找 ClassSymbol,若不存在,说明这个包下的成员没有被加载过
@@ -2639,7 +2639,7 @@ public class ClassReader implements Completer {
                 p.package_info = c;
             } else {
                 if (c.owner == p)  // it might be an inner class
-                    p.members_field.enter(c); // 填充c到PackageSymbol对象的members_field中
+                    p.members_field.enter(c); // 填充c到PackageSymbol对象的members_field中.调用 Scope.enter() 方法处理 classSymbol
             }
         } else if (c.classfile != null && (c.flags_field & seen) == 0) {
             // if c.classfile == null, we are currently compiling this class
@@ -2687,10 +2687,10 @@ public class ClassReader implements Completer {
 
     private boolean verbosePath = true;
 
-    /** Load directory of package into members scope.成员符号的填充
+    /** Load directory of package into members scope.包符号下的 成员符号的填充
      */
     private void fillIn(PackageSymbol p) throws IOException {
-        if (p.members_field == null) p.members_field = new Scope(p);
+        if (p.members_field == null) p.members_field = new Scope(p); // 创建 Scope
         String packageName = p.fullname.toString();
 
         Set<JavaFileObject.Kind> kinds = getPackageFileKinds(); // 返回 source 和 class 两种 Java文件类型
@@ -2773,11 +2773,11 @@ public class ClassReader implements Completer {
                 case CLASS:
                 case SOURCE: {
                     // TODO pass binaryName to includeClassFile
-                    String binaryName = fileManager.inferBinaryName(currentLoc, fo);// 获取文件的二进制名称
-                    String simpleName = binaryName.substring(binaryName.lastIndexOf(".") + 1);// 获取文件的 simpleName
+                    String binaryName = fileManager.inferBinaryName(currentLoc, fo);// 获取文件的二进制名称,如 com.sun.tools.javac.zc.HelloWorld
+                    String simpleName = binaryName.substring(binaryName.lastIndexOf(".") + 1);// 获取文件的 simpleName. 如 HelloWorld
                     if (SourceVersion.isIdentifier(simpleName) ||
-                        simpleName.equals("package-info"))
-                        includeClassFile(p, fo); // // 根据文件 获取类名.根据类名 和 当前packageSymbol 获取(或创建) ClassSymbol,保存到  p.members_field 中
+                        simpleName.equals("package-info")) // simpleName是合法的Java标识符 或 package-info
+                        includeClassFile(p, fo); // 根据文件fo 获取类名.根据类名 和 当前packageSymbol p获取(或创建) ClassSymbol,保存到 p.members_field 中
                     break;
                 }
                 default:

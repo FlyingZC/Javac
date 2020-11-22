@@ -107,7 +107,7 @@ public abstract class Symbol implements Element {
      */
     public Name name;
 
-    /** The type of this symbol.
+    /** The type of this symbol. 符号的类型
      */
     public Type type;
 
@@ -259,7 +259,7 @@ public abstract class Symbol implements Element {
 
     /** The fully qualified name of this symbol after converting to flat
      *  representation. This is the same as the symbol's name except for
-     *  class symbols, which are handled separately.
+     *  class symbols, which are handled separately.获取符号名称,全限定名
      */
     public Name flatName() {
         return getQualifiedName();
@@ -431,7 +431,7 @@ public abstract class Symbol implements Element {
         if (completer != null) {
             Completer c = completer;
             completer = null;
-            c.complete(this); // 完成包下成员符号的填充
+            c.complete(this); // 通过classReader,完成包下成员符号的填充
         }
     }
 
@@ -664,7 +664,7 @@ public abstract class Symbol implements Element {
      */
     public static class PackageSymbol extends TypeSymbol
         implements PackageElement {
-        // 保存包下面的 成员符号
+        // 保存包下面的 成员符号 到 Scope
         public Scope members_field;
         public Name fullname;
         public ClassSymbol package_info; // see bug 6443073

@@ -30,7 +30,7 @@ import com.sun.source.tree.Tree.Kind;
 import javax.lang.model.type.TypeKind;
 
 /** An interface for type tag values, which distinguish between different
- *  sorts of types.
+ *  sorts of types. Java不同类型的标记
  *
  *  <p><b>This is NOT part of any supported API.
  *  If you write code that depends on this, you do so at your own risk.
