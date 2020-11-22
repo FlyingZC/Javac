@@ -442,7 +442,7 @@ public class Check {
      */
     public interface CheckContext {
         /**
-         * Is type 'found' compatible with type 'req' in given context
+         * Is type 'found' compatible with type 'req' in given context.在上下文中要查找的类型和给定的是否兼容
          */
         boolean compatible(Type found, Type req, Warner warn);
         /**
@@ -1797,7 +1797,7 @@ public class Check {
 
     /** Return the first method which is defined with same args
      *  but different return types in two given interfaces, or null if none
-     *  exists.
+     *  exists.返回检查到的第一个不兼容的方法
      *  @param t1     The first type.
      *  @param t2     The second type.
      *  @param site   The most derived type.
@@ -1805,13 +1805,13 @@ public class Check {
      */
     private Symbol firstIncompatibility(DiagnosticPosition pos, Type t1, Type t2, Type site) {
         Map<TypeSymbol,Type> interfaces1 = new HashMap<TypeSymbol,Type>();
-        closure(t1, interfaces1);
+        closure(t1, interfaces1); // 查找t1及t1的所有父类和实现接口,保存到 interfaces1 里
         Map<TypeSymbol,Type> interfaces2;
-        if (t1 == t2)
-            interfaces2 = interfaces1;
-        else
-            closure(t2, interfaces1, interfaces2 = new HashMap<TypeSymbol,Type>());
-
+        if (t1 == t2) // 若 t1和t2是同一类型
+            interfaces2 = interfaces1; // 赋值
+        else // t1和t2不是同一类型
+            closure(t2, interfaces1, interfaces2 = new HashMap<TypeSymbol,Type>()); // 调用closure()方法删除在interfaces1列表中已经存在的类型,剩下的t2及t2的父类和实现接口都加入interfaces2列表中
+        // 对父类或接口中的方法进行兼容性检查
         for (Type t3 : interfaces1.values()) {
             for (Type t4 : interfaces2.values()) {
                 Symbol s = firstDirectIncompatibility(pos, t3, t4, site);
@@ -2286,20 +2286,20 @@ public class Check {
      *  @param c            The class whose interfaces are checked.
      */
     void checkCompatibleSupertypes(DiagnosticPosition pos, Type c) {
-        List<Type> supertypes = types.interfaces(c);
-        Type supertype = types.supertype(c);
+        List<Type> supertypes = types.interfaces(c); // 所有接口
+        Type supertype = types.supertype(c); // 父类
         if (supertype.hasTag(CLASS) &&
-            (supertype.tsym.flags() & ABSTRACT) != 0)  // 如果父类为抽象类,将父类追加到supertypes列表的头部
+            (supertype.tsym.flags() & ABSTRACT) != 0)  // 如果父类为抽象类(需要实现所有父类的抽象方法),将父类追加到supertypes列表的头部
             supertypes = supertypes.prepend(supertype);
         for (List<Type> l = supertypes; l.nonEmpty(); l = l.tail) { // 对父类或接口中的方法两两进行兼容性检查
             if (allowGenerics && !l.head.getTypeArguments().isEmpty() &&
-                !checkCompatibleAbstracts(pos, l.head, l.head, c))
+                !checkCompatibleAbstracts(pos, l.head, l.head, c)) // 对参数化类型中定义的方法进行检查
                 return;
             for (List<Type> m = supertypes; m != l; m = m.tail)
                 if (!checkCompatibleAbstracts(pos, l.head, m.head, c))
                     return;
         }
-        checkCompatibleConcretes(pos, c);
+        checkCompatibleConcretes(pos, c); // 对方法的实现进行检查
     }
 
     void checkConflicts(DiagnosticPosition pos, Symbol sym, TypeSymbol c) {

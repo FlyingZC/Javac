@@ -229,7 +229,7 @@ public class Attr extends JCTree.Visitor {
      *  If check fails, store errType in tree and return it.
      *  No checks are performed if the prototype is a method type.
      *  It is not necessary in this case since we know that kind and type
-     *  are correct.
+     *  are correct.验证实际的符号和类型是否与期望的符号和类型兼容
      *
      *  @param tree     The tree whose kind and type is checked
      *  @param ownkind  The computed kind of the tree
@@ -237,7 +237,7 @@ public class Attr extends JCTree.Visitor {
      */
     Type check(final JCTree tree, final Type found, final int ownkind, final ResultInfo resultInfo) {
         InferenceContext inferenceContext = resultInfo.checkContext.inferenceContext();
-        Type owntype = found;
+        Type owntype = found; // 实际的类型
         if (!owntype.hasTag(ERROR) && !resultInfo.pt.hasTag(METHOD) && !resultInfo.pt.hasTag(FORALL)) {
             if (inferenceContext.free(found)) {
                 inferenceContext.addFreeTypeListener(List.of(found, resultInfo.pt), new FreeTypeListener() {
@@ -260,7 +260,7 @@ public class Attr extends JCTree.Visitor {
                 }
             }
         }
-        tree.type = owntype;
+        tree.type = owntype; // 上面校验通过,此处为语法树 标注类型
         return owntype;
     }
 
@@ -503,8 +503,8 @@ public class Attr extends JCTree.Visitor {
     }
 
     class ResultInfo {
-        final int pkind;
-        final Type pt;
+        final int pkind; // 期望的符号,参见Kinds
+        final Type pt; // 期望的类型,参见 TypeTags
         final CheckContext checkContext;
 
         ResultInfo(int pkind, Type pt) {
@@ -586,19 +586,19 @@ public class Attr extends JCTree.Visitor {
     Type result;
 
     /** Visitor method: attribute a tree, catching any completion failure
-     *  exceptions. Return the tree's type.
+     *  exceptions. Return the tree's type.语法树标注
      *
      *  @param tree    The tree to be visited.
      *  @param env     The environment visitor argument.
      *  @param resultInfo   The result info visitor argument.
      */
     Type attribTree(JCTree tree, Env<AttrContext> env, ResultInfo resultInfo) {
-        Env<AttrContext> prevEnv = this.env;
+        Env<AttrContext> prevEnv = this.env; // 当前环境
         ResultInfo prevResult = this.resultInfo;
         try {
             this.env = env;
             this.resultInfo = resultInfo;
-            tree.accept(this);
+            tree.accept(this); // 通过当前 attr对象,访问tree
             if (tree == breakTree &&
                     resultInfo.checkContext.deferredAttrContext().mode == AttrMode.CHECK) {
                 throw new BreakAttr(env);
@@ -2764,15 +2764,15 @@ public class Attr extends JCTree.Visitor {
         attribExpr(tree.rhs, env, owntype);
         result = check(tree, capturedType, VAL, resultInfo);
     }
-
+    /**对 复合赋值运算符的树节点 标注*/
     public void visitAssignop(JCAssignOp tree) {
-        // Attribute arguments.
-        Type owntype = attribTree(tree.lhs, env, varInfo);
+        // Attribute arguments. 对JCAssignOp树节点tree的左子树与右子树进行标注
+        Type owntype = attribTree(tree.lhs, env, varInfo); // 标注左子树
         Type operand = attribExpr(tree.rhs, env);
         // Find operator.
         Symbol operator = tree.operator = rs.resolveBinaryOperator(
             tree.pos(), tree.getTag().noAssignOp(), env,
-            owntype, operand);
+            owntype, operand); // 查找具体的符号引用
 
         if (operator.kind == MTH &&
                 !owntype.isErroneous() &&
@@ -2787,9 +2787,9 @@ public class Attr extends JCTree.Visitor {
                               operator.type.getReturnType(),
                               owntype);
         }
-        result = check(tree, owntype, VAL, resultInfo);
+        result = check(tree, owntype, VAL, resultInfo); // 标注类型
     }
-
+    /**一元运算符 节点标注*/
     public void visitUnary(JCUnary tree) {
         // Attribute arguments.
         Type argtype = (tree.getTag().isIncOrDecUnaryOp())
@@ -2798,7 +2798,7 @@ public class Attr extends JCTree.Visitor {
 
         // Find operator.
         Symbol operator = tree.operator =
-            rs.resolveUnaryOperator(tree.pos(), tree.getTag(), env, argtype);
+            rs.resolveUnaryOperator(tree.pos(), tree.getTag(), env, argtype); // 查找具体的符号引用
 
         Type owntype = types.createErrorType(tree.type);
         if (operator.kind == MTH &&
@@ -2827,16 +2827,16 @@ public class Attr extends JCTree.Visitor {
         }
         result = check(tree, owntype, VAL, resultInfo);
     }
-
+    /**二元运算符的树节点标注*/
     public void visitBinary(JCBinary tree) {
         // Attribute arguments.
-        Type left = chk.checkNonVoid(tree.lhs.pos(), attribExpr(tree.lhs, env));
+        Type left = chk.checkNonVoid(tree.lhs.pos(), attribExpr(tree.lhs, env)); // 调用attribExpr()分别对 左子树 和 右子树 进行标注
         Type right = chk.checkNonVoid(tree.lhs.pos(), attribExpr(tree.rhs, env));
 
         // Find operator.
         Symbol operator = tree.operator =
-            rs.resolveBinaryOperator(tree.pos(), tree.getTag(), env, left, right);
-
+            rs.resolveBinaryOperator(tree.pos(), tree.getTag(), env, left, right); // 查找具体引用的符号
+        // 标注类型
         Type owntype = types.createErrorType(tree.type);
         if (operator.kind == MTH &&
                 !left.isErroneous() &&
@@ -2878,7 +2878,7 @@ public class Attr extends JCTree.Visitor {
 
             chk.checkDivZero(tree.rhs.pos(), operator, right);
         }
-        result = check(tree, owntype, VAL, resultInfo);
+        result = check(tree, owntype, VAL, resultInfo); // 对符号和类型的兼容性进行检查
     }
 
     public void visitTypeCast(final JCTypeCast tree) {
@@ -2932,19 +2932,19 @@ public class Attr extends JCTree.Visitor {
         if ((pkind() & VAR) == 0) owntype = capture(owntype);
         result = check(tree, owntype, VAR, resultInfo);
     }
-
+    /**JCIdent树节点 标注*/
     public void visitIdent(JCIdent tree) {
         Symbol sym;
 
         // Find symbol
-        if (pt().hasTag(METHOD) || pt().hasTag(FORALL)) {
+        if (pt().hasTag(METHOD) || pt().hasTag(FORALL)) { // 查找方法
             // If we are looking for a method, the prototype `pt' will be a
             // method type with the type of the call's arguments as parameters.
             env.info.pendingResolutionPhase = null;
             sym = rs.resolveMethod(tree.pos(), env, tree.name, pt().getParameterTypes(), pt().getTypeArguments());
-        } else if (tree.sym != null && tree.sym.kind != VAR) {
+        } else if (tree.sym != null && tree.sym.kind != VAR) { // 处理导入声明
             sym = tree.sym;
-        } else {
+        } else { // 查找类型 或 变量
             sym = rs.resolveIdent(tree.pos(), env, tree.name, pkind());
         }
         tree.sym = sym;
@@ -3005,7 +3005,7 @@ public class Attr extends JCTree.Visitor {
         }
         result = checkId(tree, env1.enclClass.sym.type, sym, env, resultInfo);
     }
-
+    /**JCFieldAccess树节点的标注.JCFieldAccess树节点可能引用的是类型、方法或变量相关的符号*/
     public void visitSelect(JCFieldAccess tree) {
         // Determine the expected kind of the qualifier expression.
         int skind = 0;

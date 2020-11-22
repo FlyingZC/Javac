@@ -82,6 +82,6 @@ public class ParserFactory {
 
     public JavacParser newParser(CharSequence input, boolean keepDocComments, boolean keepEndPos, boolean keepLineMap) {
         Lexer lexer = scannerFactory.newScanner(input, keepDocComments); // 创建 Scanner
-        return new JavacParser(this, lexer, keepDocComments, keepLineMap, keepEndPos);
+        return new JavacParser(this, lexer, keepDocComments, keepLineMap, keepEndPos); // 将 Scanner 包装成 JavacParser
     }
 }

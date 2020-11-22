@@ -367,7 +367,7 @@ public class Flow {
         }
     }
 
-    /**
+    /** 数据流分析1:语句活跃性分析,它检查每条语句是否是可访问的.
      * This pass implements the first step of the dataflow analysis, namely
      * the liveness analysis check. This checks that every statement is reachable.
      * The output of this analysis pass are used by other analyzers. This analyzer
@@ -376,7 +376,7 @@ public class Flow {
     class AliveAnalyzer extends BaseAnalyzer<BaseAnalyzer.PendingExit> {
 
         /** A flag that indicates whether the last statement could
-         *  complete normally.
+         *  complete normally.标识最后一条语句是否能被执行到
          */
         private boolean alive;
 
@@ -1318,7 +1318,7 @@ public class Flow {
         Bits uninitsWhenTrue;
         Bits uninitsWhenFalse;
 
-        /** A mapping from addresses to variable symbols.
+        /** A mapping from addresses to variable symbols.变量符号
          */
         VarSymbol[] vars;
 
@@ -1326,11 +1326,11 @@ public class Flow {
          */
         JCClassDecl classDef;
 
-        /** The first variable sequence number in this class definition.
+        /** The first variable sequence number in this class definition.保存相关作用域内声明的第一个变量的位置
          */
         int firstadr;
 
-        /** The next available variable sequence number.
+        /** The next available variable sequence number.保存vars中下一个可用的存储位置
          */
         int nextadr;
 
@@ -1374,7 +1374,7 @@ public class Flow {
         /*-------------- Processing variables ----------------------*/
 
         /** Do we need to track init/uninit state of this symbol?
-         *  I.e. is symbol either a local or a blank final variable?
+         *  I.e. is symbol either a local or a blank final variable?判断是否必要对变量进行赋值检查
          */
         boolean trackable(VarSymbol sym) {
             return

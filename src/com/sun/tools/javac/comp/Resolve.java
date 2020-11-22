@@ -2388,7 +2388,7 @@ public class Resolve {
 
 
 
-    /** Resolve operator.
+    /** Resolve operator.查找具体引用的符号
      *  @param pos       The position to use for error reporting.
      *  @param optag     The tag of the operation tree.
      *  @param env       The environment current at the operation.
@@ -2399,10 +2399,10 @@ public class Resolve {
         MethodResolutionContext prevResolutionContext = currentResolutionContext;
         try {
             currentResolutionContext = new MethodResolutionContext();
-            Name name = treeinfo.operatorName(optag);
+            Name name = treeinfo.operatorName(optag); // 得到运算符名称
             env.info.pendingResolutionPhase = currentResolutionContext.step = BASIC;
             Symbol sym = findMethod(env, syms.predefClass.type, name, argtypes,
-                                    null, false, false, true);
+                                    null, false, false, true); // 查找符号引用
             if (boxingEnabled && sym.kind >= WRONG_MTHS)
                 env.info.pendingResolutionPhase = currentResolutionContext.step = BOX;
                 sym = findMethod(env, syms.predefClass.type, name, argtypes,

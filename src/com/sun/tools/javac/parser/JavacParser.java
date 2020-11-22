@@ -54,7 +54,7 @@ import static com.sun.tools.javac.util.ListBuffer.lb;
  *  tree. It operates by recursive descent, with code derived
  *  systematically from an LL(1) grammar. For efficiency reasons, an
  *  operator precedence scheme is used for parsing binary operation
- *  expressions.
+ *  expressions. token->抽象语法树
  *
  *  <p><b>This is NOT part of any supported API.
  *  If you write code that depends on this, you do so at your own risk.
@@ -140,7 +140,7 @@ public class JavacParser implements Parser {
                      boolean keepLineMap,
                      boolean keepEndPositions) {
         this.S = S; // s 是 Scanner 对象
-        nextToken(); // prime the pump
+        nextToken(); // prime the pump 直接开始驱动读取token
         this.F = fac.F;
         this.log = fac.log;
         this.names = fac.names;

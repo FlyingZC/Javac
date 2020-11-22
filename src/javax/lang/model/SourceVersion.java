@@ -174,7 +174,7 @@ public enum SourceVersion {
         return latestSupported;
     }
 
-    /** 是否是 标识符
+    /** 是否是合法的Java标识符
      * Returns whether or not {@code name} is a syntactically valid
      * identifier (simple name) or keyword in the latest source
      * version.  The method returns {@code true} if the name consists

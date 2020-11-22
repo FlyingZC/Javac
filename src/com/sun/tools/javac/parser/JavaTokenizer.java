@@ -467,7 +467,7 @@ public class JavaTokenizer {
                     do {
                         reader.scanChar();
                     } while (reader.ch == ' ' || reader.ch == '\t' || reader.ch == FF);
-                    processWhiteSpace(pos, reader.bp);
+                    processWhiteSpace(pos, reader.bp); // 空白跳过
                     break;
                 case LF: // (Spec 3.4) 换行符(\n)
                     reader.scanChar();

@@ -45,7 +45,7 @@ import com.sun.tools.javac.util.List;
 import static com.sun.tools.javac.code.BoundKind.*;
 import static com.sun.tools.javac.tree.JCTree.Tag.*;
 
-/**
+/** 抽象语法树节点的基类,里面各个子类表示不同的抽象语法树节点
  * Root class for abstract syntax tree nodes. It provides definitions
  * for specific tree nodes as subclasses nested inside.
  *
@@ -486,7 +486,7 @@ public abstract class JCTree implements Tree, Cloneable, DiagnosticPosition {
         public List<JCTree> defs;
         /* The source file name. */
         public JavaFileObject sourcefile;
-        /** The package to which this compilation unit belongs. */
+        /** The package to which this compilation unit belongs. 所属的包符号*/
         public PackageSymbol packge;
         /** A scope for all named imports. */
         public ImportScope namedImportScope;
@@ -1462,7 +1462,7 @@ public abstract class JCTree implements Tree, Cloneable, DiagnosticPosition {
         }
     }
 
-    /**
+    /** new()操作
      * A new(...) operation.
      */
     public static class JCNewClass extends JCPolyExpression implements NewClassTree {
@@ -1638,7 +1638,7 @@ public abstract class JCTree implements Tree, Cloneable, DiagnosticPosition {
         }
     }
 
-    /**
+    /** 赋值
      * A assignment with "=".
      */
     public static class JCAssign extends JCExpression implements AssignmentTree {
@@ -1664,7 +1664,7 @@ public abstract class JCTree implements Tree, Cloneable, DiagnosticPosition {
         }
     }
 
-    /**
+    /** 含有 复合赋值运算符 的树节点
      * An assignment with "+=", "|=" ...
      */
     public static class JCAssignOp extends JCExpression implements CompoundAssignmentTree {
@@ -1698,7 +1698,7 @@ public abstract class JCTree implements Tree, Cloneable, DiagnosticPosition {
     }
 
     /**
-     * A unary operation.
+     * A unary operation. 一元运算符的树节点
      */
     public static class JCUnary extends JCExpression implements UnaryTree {
         private Tag opcode;
@@ -1731,7 +1731,7 @@ public abstract class JCTree implements Tree, Cloneable, DiagnosticPosition {
     }
 
     /**
-     * A binary operation.
+     * A binary operation. 二元运算符的树节点
      */
     public static class JCBinary extends JCExpression implements BinaryTree {
         private Tag opcode;

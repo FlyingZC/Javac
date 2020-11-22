@@ -234,7 +234,7 @@ public class TreeScanner extends Visitor {
         scan(tree.lhs);
         scan(tree.rhs);
     }
-
+    /**查找类型并标注*/
     public void visitUnary(JCUnary tree) {
         scan(tree.arg);
     }

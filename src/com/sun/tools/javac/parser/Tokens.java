@@ -58,7 +58,7 @@ public class Tokens {
      */
     private int maxKey = 0;
 
-    /** The names of all tokens.
+    /** The names of all tokens. 保存所有token的 Name对象
      */
     private Name[] tokenName = new Name[TokenKind.values().length];
 
@@ -114,7 +114,7 @@ public class Tokens {
      * optionally associated with a name.
      */
     public enum TokenKind implements Formattable, Filter<TokenKind> {
-        EOF(),
+        EOF(), // 读取到文件的末尾时生成一个EOF,作为token结尾
         ERROR(),
         IDENTIFIER(Tag.NAMED), // 标识符.这个 Token 对象没有 name 值,用来泛指用户自定义的类名、包名、变量包、方法名等
         ABSTRACT("abstract"),
@@ -167,7 +167,7 @@ public class Tokens {
         VOID("void", Tag.NAMED),
         VOLATILE("volatile"),
         WHILE("while"),
-        INTLITERAL(Tag.NUMERIC),
+        INTLITERAL(Tag.NUMERIC), // 字面量.基本类型的字面量 和 String类型的字面量
         LONGLITERAL(Tag.NUMERIC),
         FLOATLITERAL(Tag.NUMERIC),
         DOUBLELITERAL(Tag.NUMERIC),
