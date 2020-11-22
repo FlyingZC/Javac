@@ -1,7 +1,5 @@
 package com.sun.tools.javac.zc;
 
-import com.sun.tools.javac.zc.z03symbol.TestOuterProperty;
-
 import javax.tools.ToolProvider;
 import java.io.IOException;
 
@@ -10,10 +8,14 @@ public class T01Compiler {
 
     public static void main(String args[]) throws IOException {
 
-        // String path = BASE_DIR + "/HelloWorld.java";
-        // String path = BASE_DIR + "/z02tree/T01ClassType.java";
-        // String path = BASE_DIR + "/z03symbol/TestOuterProperty.java";
-        String path = BASE_DIR + "/z03symbol/enter/TestOuterA.java";
+        String path1 = BASE_DIR + "/HelloWorld.java";
+        String path2 = BASE_DIR + "/z02tree/T01ClassType.java";
+        String path3 = BASE_DIR + "/z03symbol/TestOuterProperty.java";
+        String path4 = BASE_DIR + "/z03symbol/enter/TestOuterA.java";
+        String path5 = BASE_DIR + "/z05/T01Converter.java";
+        String path6 = BASE_DIR + "/z05semantic/Test.java";
+
+        String path = path1;
 
         javax.tools.JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
         int result = compiler.run(null, null, null,
